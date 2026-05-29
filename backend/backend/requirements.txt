@@ -1,0 +1,11 @@
+Django
+djangorestframework
+gunicorn
+whitenoise
+langchain
+langgraph
+langchain-groq
+python-dotenv
+chromadb
+sentence-transformers
+pypdf
