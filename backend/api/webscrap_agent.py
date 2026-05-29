@@ -1,29 +1,32 @@
+import re
 import requests
+
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, quote
+from urllib.parse import quote
 
 from dotenv import load_dotenv
+
 from langchain_groq import ChatGroq
 
 
-# =========================
+# =========================================
 # LOAD ENV
-# =========================
+# =========================================
 load_dotenv()
 
 
-# =========================
+# =========================================
 # LLM
-# =========================
+# =========================================
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
     temperature=0
 )
 
 
-# =========================
+# =========================================
 # HEADERS
-# =========================
+# =========================================
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 "
@@ -35,40 +38,62 @@ HEADERS = {
 }
 
 
-# =========================
-# WEBSITES TO SEARCH
-# =========================
-TARGET_SITES = [
+# =========================================
+# LEGAL SOURCES
+# =========================================
+LEGAL_SOURCES = [
 
-    # Supreme Court
-    "https://www.sci.gov.in",
+    # Indian Kanoon
+    {
+        "name": "Indian Kanoon",
+        "search_url":
+        "https://indiankanoon.org/search/?formInput="
+    },
 
-    # High Courts
-    "https://www.allahabadhighcourt.in",
-    "https://delhihighcourt.nic.in",
-    "https://bombayhighcourt.nic.in",
-    "https://www.hcmadras.tn.nic.in",
-    "https://karnatakajudiciary.kar.nic.in",
+    # LiveLaw
+    {
+        "name": "LiveLaw",
+        "search_url":
+        "https://www.livelaw.in/search?query="
+    },
 
-    # Legal Research
-    "https://indiankanoon.org",
-    "https://www.livelaw.in",
-    "https://www.barandbench.com",
-    "https://prsindia.org",
+    # Bar and Bench
+    {
+        "name": "Bar and Bench",
+        "search_url":
+        "https://www.barandbench.com/search?q="
+    },
+
+    # PRS India
+    {
+        "name": "PRS India",
+        "search_url":
+        "https://prsindia.org/search/node/"
+    },
 ]
 
 
-# =========================
-# SCRAPE WEBSITE
-# =========================
-def scrape_website(url):
+# =========================================
+# CLEAN TEXT
+# =========================================
+def clean_text(text):
+
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
+
+
+# =========================================
+# SCRAPE PAGE
+# =========================================
+def scrape_page(url):
 
     try:
 
         response = requests.get(
             url,
             headers=HEADERS,
-            timeout=10
+            timeout=15
         )
 
         response.raise_for_status()
@@ -78,17 +103,16 @@ def scrape_website(url):
             "html.parser"
         )
 
-        # remove junk tags
+        # remove junk
         for tag in soup([
             "script",
             "style",
-            "noscript"
+            "noscript",
+            "header",
+            "footer",
+            "svg"
         ]):
             tag.decompose()
-
-        text = soup.get_text(separator=" ")
-
-        clean_text = " ".join(text.split())
 
         title = (
             soup.title.string.strip()
@@ -96,112 +120,155 @@ def scrape_website(url):
             else "No Title"
         )
 
+        paragraphs = soup.find_all("p")
+
+        content = " ".join([
+            p.get_text(" ", strip=True)
+            for p in paragraphs[:50]
+        ])
+
+        content = clean_text(content)
+
         return {
             "success": True,
+            "url": url,
             "title": title,
-            "content": clean_text[:3000]
+            "content": content[:5000]
         }
 
     except Exception as e:
 
         return {
             "success": False,
+            "url": url,
             "error": str(e)
         }
 
 
-# =========================
-# SEARCH MULTIPLE SITES
-# =========================
-def search_websites(query):
+# =========================================
+# SEARCH LEGAL SOURCES
+# =========================================
+def search_legal_sources(query):
 
-    all_results = []
+    results = []
 
-    for site in TARGET_SITES:
+    for source in LEGAL_SOURCES:
 
         try:
 
             search_url = (
-                f"{site}/search/?formInput="
-                f"{quote(query)}"
+                source["search_url"]
+                + quote(query)
             )
 
-            result = scrape_website(
+            scraped = scrape_page(
                 search_url
             )
 
-            if result["success"]:
+            if scraped["success"]:
 
-                all_results.append({
-                    "website": site,
-                    "title": result["title"],
-                    "content": result["content"]
+                results.append({
+                    "source": source["name"],
+                    "url": scraped["url"],
+                    "title": scraped["title"],
+                    "content": scraped["content"]
                 })
 
         except:
             continue
 
-    return all_results
+    return results
 
 
-# =========================
+# =========================================
+# FILTER RELEVANT RESULTS
+# =========================================
+def filter_relevant_results(
+    query,
+    results
+):
+
+    if not results:
+        return []
+
+    combined = ""
+
+    for idx, result in enumerate(results):
+
+        combined += f"""
+
+RESULT {idx+1}
+
+SOURCE:
+{result['source']}
+
+TITLE:
+{result['title']}
+
+CONTENT:
+{result['content'][:2000]}
+
+==================================
+"""
+
+    prompt = f"""
+You are a Legal Research AI.
+
+USER QUERY:
+{query}
+
+LEGAL SEARCH RESULTS:
+{combined}
+
+TASK:
+1. Select only highly relevant results
+2. Ignore unrelated legal content
+3. Extract important legal insights
+4. Keep citations/source names
+5. Return concise structured summary
+"""
+
+    response = llm.invoke(prompt)
+
+    return response.content
+
+
+# =========================================
 # MAIN WEB AGENT
-# =========================
+# =========================================
 def ask_web_agent(query):
 
     try:
 
-        web_results = search_websites(
+        # =================================
+        # SEARCH SOURCES
+        # =================================
+        results = search_legal_sources(
             query
         )
 
-        if not web_results:
+        if not results:
 
-            return "No web results found."
+            return """
+No relevant legal web results found.
+"""
 
-        combined_data = ""
-
-        for result in web_results:
-
-            combined_data += f"""
-            WEBSITE:
-            {result['website']}
-
-            TITLE:
-            {result['title']}
-
-            CONTENT:
-            {result['content']}
-
-            =====================
-            """
-
-        final_prompt = f"""
-        You are Nyaya AI Web Research Agent.
-
-        USER QUERY:
-        {query}
-
-        WEB DATA:
-        {combined_data}
-
-        TASK:
-        - analyze information
-        - summarize findings
-        - extract legal insights
-        - compare information
-        - provide final answer
-        """
-
-        response = llm.invoke(
-            final_prompt
+        # =================================
+        # FILTER + SUMMARIZE
+        # =================================
+        final_answer = (
+            filter_relevant_results(
+                query,
+                results
+            )
         )
 
-        return response.content
+        return final_answer
 
     except Exception as e:
 
         return f"""
-        WEB AGENT ERROR:
-        {str(e)}
-        """
+WEB AGENT ERROR:
+
+{str(e)}
+"""

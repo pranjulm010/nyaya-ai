@@ -1,74 +1,109 @@
 from .pdf_agent import pdf_agent
 from .kanoon_agent import kanoon_agent
-from .memory_agent import get_memory
+from .memory_agent import (
+    search_memory,
+    format_memory,
+    get_memory
+)
 from .drafting_agent import drafting_agent
 from .webscrap_agent import ask_web_agent
 
 
 def router_agent(user_query):
 
-    final_context = []
+    collected_context = []
 
-    # =========================
-    # MEMORY
-    # =========================
+    # =========================================
+    # 1. MEMORY CONTEXT
+    # =========================================
     try:
 
         memory = get_memory()
 
-        final_context.append(f"""
-        CHAT HISTORY:
-        {memory}
-        """)
+        if memory:
+
+            collected_context.append(f"""
+            PREVIOUS CHAT HISTORY:
+            {memory}
+            """)
 
     except Exception as e:
 
-        final_context.append(
-            f"MEMORY ERROR: {str(e)}"
+        collected_context.append(
+            f"MEMORY ERROR:\n{str(e)}"
         )
 
-    # =========================
-    # PDF AGENT
-    # =========================
-    if any(word in user_query.lower() for word in [
-        "pdf",
-        "document",
-        "agreement",
-        "contract",
-        "file",
-        "upload"
-    ]):
+    # =========================================
+    # 2. PDF VECTOR SEARCH (ALWAYS)
+    # =========================================
+    try:
 
-        try:
+        pdf_context = search_context(
+            user_query,
+            top_k=5
+        )
 
-            pdf_context = pdf_agent(
-                user_query
-            )
+        if pdf_context:
 
-            final_context.append(f"""
-            PDF CONTEXT:
+            collected_context.append(f"""
+            PDF KNOWLEDGE BASE:
             {pdf_context}
             """)
 
-        except Exception as e:
+    except Exception as e:
 
-            final_context.append(
-                f"PDF AGENT ERROR: {str(e)}"
-            )
+        collected_context.append(
+            f"PDF SEARCH ERROR:\n{str(e)}"
+        )
 
-    # =========================
-    # KANOON AGENT
-    # =========================
-    if any(word in user_query.lower() for word in [
+    # =========================================
+    # 3. PDF AGENT
+    # =========================================
+    try:
+
+        pdf_analysis = pdf_agent(
+            user_query
+        )
+
+        if pdf_analysis:
+
+            collected_context.append(f"""
+            PDF AGENT ANALYSIS:
+            {pdf_analysis}
+            """)
+
+    except Exception as e:
+
+        collected_context.append(
+            f"PDF AGENT ERROR:\n{str(e)}"
+        )
+
+    # =========================================
+    # 4. LEGAL / KANOON AGENT
+    # =========================================
+    legal_keywords = [
         "case",
         "judgment",
-        "supreme court",
-        "high court",
         "legal",
         "law",
         "section",
-        "article"
-    ]):
+        "article",
+        "court",
+        "petition",
+        "bail",
+        "ipc",
+        "constitution",
+        "advocate",
+        "criminal",
+        "civil",
+        "supreme court",
+        "high court"
+    ]
+
+    if any(
+        word in user_query.lower()
+        for word in legal_keywords
+    ):
 
         try:
 
@@ -76,98 +111,128 @@ def router_agent(user_query):
                 user_query
             )
 
-            final_context.append(f"""
-            KANOON DATA:
-            {kanoon_data}
-            """)
+            if kanoon_data:
+
+                collected_context.append(f"""
+                INDIAN LEGAL DATABASE:
+                {kanoon_data}
+                """)
 
         except Exception as e:
 
-            final_context.append(
-                f"KANOON AGENT ERROR: {str(e)}"
+            collected_context.append(
+                f"KANOON AGENT ERROR:\n{str(e)}"
             )
 
-    # =========================
-    # WEBSCRAPER AGENT
-    # =========================
+    # =========================================
+    # 5. WEB SEARCH / SCRAPER AGENT
+    # =========================================
+    web_keywords = [
+        "latest",
+        "news",
+        "today",
+        "current",
+        "recent",
+        "website",
+        "online",
+        "update"
+    ]
+
     if (
         "http" in user_query
         or "www" in user_query
-        or "website" in user_query.lower()
-        or "latest" in user_query.lower()
-        or "news" in user_query.lower()
-        or "online" in user_query.lower()
+        or any(
+            word in user_query.lower()
+            for word in web_keywords
+        )
     ):
 
         try:
 
-            web_data = ask_webscraper_agent(
+            web_data = ask_web_agent(
                 user_query
             )
 
-            final_context.append(f"""
-            WEBSCRAPER DATA:
-            {web_data}
-            """)
+            if web_data:
+
+                collected_context.append(f"""
+                WEB RESEARCH:
+                {web_data}
+                """)
 
         except Exception as e:
 
-            final_context.append(
-                f"WEBSCRAPER AGENT ERROR: {str(e)}"
+            collected_context.append(
+                f"WEB AGENT ERROR:\n{str(e)}"
             )
 
-    # =========================
-    # COMBINE CONTEXT
-    # =========================
+    # =========================================
+    # 6. FINAL COMBINED CONTEXT
+    # =========================================
     combined_context = "\n\n".join(
-        final_context
+        collected_context
     )
 
-    # =========================
-    # FINAL PROMPT
-    # =========================
+    # =========================================
+    # 7. FINAL MASTER PROMPT
+    # =========================================
     final_prompt = f"""
-    You are Nyaya AI,
-    an advanced Indian Legal AI Assistant.
+You are Nyaya AI,
+an advanced Indian Legal AI Assistant.
 
-    Your role:
-    - answer legal questions
-    - summarize documents
-    - analyze judgments
-    - use web research
-    - combine outputs from multiple AI agents
-    - provide accurate reasoning
+=========================================
+USER QUESTION
+=========================================
 
-    AVAILABLE CONTEXT:
-    {combined_context}
+{user_query}
 
-    USER QUESTION:
-    {user_query}
+=========================================
+AVAILABLE CONTEXT
+=========================================
 
-    IMPORTANT INSTRUCTIONS:
-    - Give structured responses
-    - Use headings when needed
-    - Mention legal reasoning
-    - Use all relevant context
-    - Do not hallucinate
-    - If data is unavailable, say so clearly
-    - Keep response professional
-    """
+{combined_context}
 
-    # =========================
-    # FINAL DRAFTING AGENT
-    # =========================
+=========================================
+YOUR RESPONSIBILITIES
+=========================================
+
+1. Answer accurately using provided context
+2. Prioritize PDF knowledge if available
+3. Use legal reasoning when needed
+4. Combine web + kanoon + pdf knowledge
+5. Mention uncertainty clearly
+6. Do not hallucinate laws or judgments
+7. Keep answers structured and professional
+8. If multiple sources conflict:
+   - mention the conflict
+   - explain which source is stronger
+
+=========================================
+RESPONSE FORMAT
+=========================================
+
+- Summary
+- Key Findings
+- Legal Analysis
+- Important Notes
+- Final Conclusion
+"""
+
+    # =========================================
+    # 8. FINAL AI RESPONSE
+    # =========================================
     try:
 
-        answer = drafting_agent(
+        final_answer = drafting_agent(
             final_prompt
         )
 
-        return answer
+        return final_answer
 
     except Exception as e:
 
         return f"""
-        FINAL DRAFTING ERROR:
-        {str(e)}
-        """
+FINAL DRAFTING ERROR:
+
+{str(e)}
+"""
