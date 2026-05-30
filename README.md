@@ -1,240 +1,465 @@
-# Nyaya AI — Indian Legal Intelligence Platform
+# Nyaya AI — Multilingual Indian Legal Intelligence Platform
 
 ## What Is Nyaya AI?
 
-Nyaya AI is an AI-powered legal research and document analysis platform built specifically for the Indian legal ecosystem. It allows law firms, advocates, legal departments, and compliance teams to upload legal documents (contracts, FIRs, judgments, notices) and ask plain-language questions — receiving detailed, sourced answers drawn from the document itself, Indian case law databases, and live legal news sources.
+Nyaya AI is an AI-powered legal intelligence platform built specifically for the Indian legal ecosystem. It enables advocates, law firms, corporate legal teams, law students, legal aid organizations, and ordinary citizens to understand, research, and analyze legal information through natural language conversations.
+
+Users can upload legal documents such as contracts, FIRs, judgments, notices, agreements, and court orders, then ask questions in plain language and receive detailed, source-backed answers derived from:
+
+* Uploaded documents
+* Indian case law databases
+* Statutory provisions
+* Constitutional provisions
+* Live legal news and regulatory sources
+
+Nyaya AI combines document intelligence, legal research, conversational memory, and multilingual accessibility into a single platform designed for India.
 
 ---
 
-## Business Requirements
+# Vision
 
-### The Problem It Solves
-
-Legal research in India is time-intensive and fragmented. An advocate or in-house counsel typically spends 4–8 hours manually searching Indian Kanoon, reading through PDF judgments, and cross-referencing legislation for a single case. Nyaya AI compresses that to minutes.
-
-### Core Use Cases
-
-| Use Case | Who Benefits |
-|---|---|
-| Contract review and clause analysis | Corporate legal teams, transactional lawyers |
-| Case law research (precedent finding) | Advocates, law students, litigation teams |
-| IPC / CrPC section interpretation | Criminal defense lawyers, police, compliance |
-| FIR and judgment analysis | Advocates, legal aid organizations |
-| Legal notice drafting assistance | Solos and small law firms |
-| Regulatory and constitutional research | Policy analysts, compliance officers |
-
-### Key Business Differentiators
-
-- **India-specific**: Integrated with Indian Kanoon API and Indian legal news sources (LiveLaw, Bar and Bench, PRS India), not generic western legal tools.
-- **Multi-source answers**: Combines uploaded documents, case law databases, and live web research in a single response.
-- **Context retention**: Maintains conversation history so follow-up questions do not require re-explaining context.
-- **Fast turnaround**: Built on Groq-hosted Llama 3.3 70B, one of the fastest LLM inference platforms available, keeping response latency low.
+To democratize access to Indian legal knowledge by making legal information understandable, searchable, and accessible for everyone—from senior advocates to first-time citizens seeking legal guidance.
 
 ---
 
-## Recommended Pricing Model
+# The Problem
 
-The following pricing is structured around typical SaaS tiers for legal AI tools in the Indian market, balanced against actual infrastructure and API costs.
+Legal information in India is often:
 
-### Tier Structure
+* Difficult to understand for non-lawyers
+* Fragmented across multiple websites and databases
+* Time-consuming to research
+* Predominantly available in English
+* Expensive to access through professional legal research tools
 
-| Plan | Target Customer | Monthly Price (INR) | Monthly Price (USD ~) |
-|---|---|---|---|
-| **Starter** | Solo advocate, law student | ₹1,499 / mo | ~$18 |
-| **Professional** | Small firm (2–10 lawyers) | ₹5,999 / mo | ~$72 |
-| **Business** | Mid-size firm (10–50 lawyers) | ₹14,999 / mo | ~$180 |
-| **Enterprise** | Large firm / corporate legal | Custom (₹40,000+) | $480+ |
+A lawyer may spend several hours researching a single legal issue, while ordinary citizens often struggle to understand their rights, procedures, or legal documents.
 
-### What Each Tier Includes
-
-| Feature | Starter | Professional | Business | Enterprise |
-|---|---|---|---|---|
-| PDF uploads per month | 20 | 100 | 500 | Unlimited |
-| Chat queries per month | 200 | 1,000 | 5,000 | Unlimited |
-| Max PDF size | 10 MB | 25 MB | 50 MB | 100 MB+ |
-| Indian Kanoon searches | 50/mo | 300/mo | 1,500/mo | Unlimited |
-| Web research queries | No | Yes | Yes | Yes |
-| Chat history retention | 7 days | 30 days | 90 days | 1 year |
-| User seats | 1 | 5 | 20 | Custom |
-| Priority support | No | Email | Email + Chat | Dedicated |
-| Custom integrations / API access | No | No | Yes | Yes |
-
-### Why This Pricing Makes Sense
-
-**Cost to serve one Professional-tier customer/month (estimated):**
-
-| Cost Item | Estimated Monthly Cost |
-|---|---|
-| Groq API inference (1,000 queries × ~500 tokens each) | ~$1.50–$3.00 |
-| Indian Kanoon API calls (300 searches) | ~$3–$6 (depending on plan) |
-| Server compute (shared cloud instance fraction) | ~$5–$8 |
-| Vector DB storage (Chroma, persistent disk) | ~$1–$2 |
-| Total estimated cost | ~$10–$19 / customer |
-
-At ₹5,999/mo (~$72), the gross margin on a Professional customer is roughly **70–80%**, which is standard for B2B SaaS. The Starter tier is deliberately priced near break-even to drive adoption among individual advocates who may graduate to higher tiers.
-
-**Enterprise pricing is negotiated** because large firms require on-premise deployment, SSO, audit logs, and dedicated infrastructure — all of which carry real implementation cost.
+Nyaya AI reduces legal research time from hours to minutes while improving accessibility across Indian languages.
 
 ---
 
-## Technical Architecture
+# Who Benefits?
 
-### System Overview
+## Legal Professionals
 
-```
+### Advocates
+
+* Case law research
+* Judgment analysis
+* Statutory interpretation
+* Legal drafting assistance
+
+### Law Firms
+
+* Contract review
+* Due diligence support
+* Legal research automation
+* Knowledge management
+
+### Corporate Legal Teams
+
+* Compliance research
+* Contract analysis
+* Regulatory monitoring
+
+### Law Students
+
+* Legal education
+* Judgment understanding
+* Constitutional research
+* Case law exploration
+
+---
+
+## General Public
+
+Nyaya AI is designed not only for lawyers but also for ordinary citizens.
+
+Citizens can:
+
+* Understand their legal rights
+* Interpret legal notices
+* Understand FIRs and court orders
+* Learn legal procedures
+* Understand laws in simple language
+* Access legal information without needing legal expertise
+
+Examples:
+
+* What should I do if I receive a legal notice?
+* Can I file my own case in court?
+* What does Section 370 mean?
+* How does bail work?
+* What are my rights as a tenant?
+* Explain this FIR in simple Hindi.
+
+---
+
+# Core Use Cases
+
+| Use Case                             | Users                          |
+| ------------------------------------ | ------------------------------ |
+| Contract review and clause analysis  | Lawyers, corporate legal teams |
+| FIR analysis                         | Advocates, citizens            |
+| Judgment summarization               | Lawyers, students              |
+| Case law research                    | Advocates, law firms           |
+| Legal notice interpretation          | Citizens, advocates            |
+| IPC/BNS section explanation          | Citizens, lawyers              |
+| Constitutional research              | Students, researchers          |
+| Compliance research                  | Corporate legal teams          |
+| Legal awareness and rights education | General public                 |
+| Regulatory monitoring                | Businesses, compliance teams   |
+
+---
+
+# Multilingual Legal Intelligence
+
+India's legal ecosystem operates across dozens of languages. Nyaya AI is designed to make legal information accessible regardless of language preference.
+
+## For Legal Professionals
+
+* Research legal topics using regional languages
+* Translate legal summaries
+* Explain judgments to clients in local languages
+* Improve communication with non-English-speaking clients
+* Support regional court practitioners
+
+## For Citizens
+
+* Ask legal questions in their native language
+* Receive simplified legal explanations
+* Understand legal documents in familiar language
+* Access legal information without English proficiency
+
+## Supported & Planned Languages
+
+* English
+* Hindi
+* Marathi
+* Bengali
+* Tamil
+* Telugu
+* Gujarati
+* Kannada
+* Malayalam
+* Punjabi
+* Urdu
+
+### Example Queries
+
+#### Advocate
+
+Hindi:
+"धारा 420 से संबंधित सुप्रीम कोर्ट के प्रमुख निर्णय बताइए।"
+
+English:
+"Find Supreme Court precedents on anticipatory bail."
+
+#### Citizen
+
+Hindi:
+"अगर किसी ने मेरे खिलाफ झूठी FIR दर्ज की है तो मुझे क्या करना चाहिए?"
+
+English:
+"Can I fight my own case without hiring a lawyer?"
+
+---
+
+# Key Differentiators
+
+## India-Specific Legal Intelligence
+
+Unlike generic AI systems, Nyaya AI is built specifically around:
+
+* Indian legal procedures
+* Indian statutes
+* Indian judgments
+* Constitutional provisions
+* Legal news and updates
+
+## Multi-Source Legal Research
+
+Nyaya AI combines:
+
+* Uploaded legal documents
+* Case law databases
+* Legal statutes
+* Constitutional provisions
+* Live legal news
+
+into a single response.
+
+## Conversational Context
+
+Users do not need to repeatedly explain the same case.
+
+Nyaya AI maintains conversation history and context for follow-up legal discussions.
+
+## Multilingual Accessibility
+
+Supports legal interactions in Indian languages, making legal information more accessible for lawyers and citizens alike.
+
+## Fast Response Times
+
+Powered by Groq-hosted Llama 3.3 70B for low-latency legal reasoning.
+
+---
+
+# Technical Architecture
+
+## System Overview
+
 User (Browser)
-     │
-     ▼
-Next.js Frontend (TypeScript, Tailwind CSS, Framer Motion)
-     │  REST API calls via Axios
-     ▼
-Django REST API (Python)
-     │
-     ▼
-Router Agent (LangGraph Orchestrator)
-     │
-     ├──► Memory Agent       — retrieves previous conversation turns
-     ├──► PDF Agent          — queries uploaded document via vector search + LLM
-     ├──► Kanoon Agent       — fetches case law from Indian Kanoon API
-     ├──► Web Scraper Agent  — scrapes LiveLaw, Bar & Bench, PRS India, etc.
-     └──► Drafting Agent     — synthesises all context into final response
-                                    │
-                                    ▼
-                          Groq / Llama 3.3 70B (LLM)
-```
+│
+▼
+Next.js Frontend
+│
+▼
+Django REST API
+│
+▼
+Router Agent (LangGraph)
+│
+├── Memory Agent
+├── PDF Agent
+├── Kanoon Agent
+├── Web Research Agent
+└── Drafting Agent
+│
+▼
+Groq / Llama 3.3 70B
+│
+▼
+Final Legal Response
 
-### Backend
+---
 
-- **Language**: Python 3.x
-- **Framework**: Django 5.1 + Django REST Framework
-- **LLM**: Groq API — `llama-3.3-70b-versatile` at temperature 0 (deterministic)
-- **Orchestration**: LangChain + LangGraph
-- **Vector Database**: ChromaDB (local persistent storage at `legal_db/`)
-- **Embeddings**: HuggingFace `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional)
-- **PDF Processing**: PyPDF with `RecursiveCharacterTextSplitter` (1,000 char chunks, 200 char overlap)
-- **Web Scraping**: BeautifulSoup + requests
-- **Production Server**: Gunicorn + WhiteNoise
+# Backend Stack
 
-### Frontend
+| Technology            | Purpose             |
+| --------------------- | ------------------- |
+| Python                | Backend language    |
+| Django                | Core framework      |
+| Django REST Framework | API development     |
+| LangChain             | LLM integration     |
+| LangGraph             | Agent orchestration |
+| ChromaDB              | Vector database     |
+| HuggingFace MiniLM    | Embeddings          |
+| Groq API              | Fast LLM inference  |
+| PyPDF                 | PDF extraction      |
+| BeautifulSoup         | Web scraping        |
+| Gunicorn              | Production server   |
+| WhiteNoise            | Static file serving |
 
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript 5
-- **Styling**: Tailwind CSS 4
-- **Animations**: Framer Motion
-- **UI Primitives**: Radix UI (Dialog)
-- **Icons**: Lucide React
-- **HTTP**: Axios
+---
 
-### API Endpoints
+# Frontend Stack
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/upload/` | Upload a PDF; extracts text, chunks it, stores embeddings in Chroma |
-| `POST` | `/api/chat/` | Send a user query; returns AI response with source attribution |
+| Technology    | Purpose                  |
+| ------------- | ------------------------ |
+| Next.js 16    | Frontend framework       |
+| TypeScript    | Type safety              |
+| Tailwind CSS  | Styling                  |
+| Framer Motion | Animations               |
+| Radix UI      | Accessible UI components |
+| Lucide React  | Icons                    |
+| Axios         | API communication        |
 
-**Upload response:**
-```json
+---
+
+# Agent Architecture
+
+## Memory Agent
+
+Maintains conversational context and retrieves relevant chat history.
+
+## PDF Agent
+
+Processes uploaded legal documents and retrieves relevant sections using semantic search.
+
+## Kanoon Agent
+
+Retrieves:
+
+* Case law
+* Statutes
+* Constitutional provisions
+* Legal precedents
+
+from Indian legal databases.
+
+## Web Research Agent
+
+Collects:
+
+* Recent judgments
+* Legal news
+* Regulatory developments
+* Policy updates
+
+from trusted legal sources.
+
+## Drafting Agent
+
+Combines outputs from all agents and generates the final response.
+
+---
+
+# Knowledge Sources
+
+## Uploaded Documents
+
+* Contracts
+* Agreements
+* FIRs
+* Court Orders
+* Legal Notices
+* Judgments
+
+## Case Law
+
+* Indian Kanoon
+* Supreme Court decisions
+* High Court judgments
+
+## Legal Sources
+
+* LiveLaw
+* Bar & Bench
+* PRS India
+* Constitution of India
+* Law Commission publications
+
+---
+
+# API Endpoints
+
+## Upload PDF
+
+POST /api/upload/
+
+Uploads a legal document, extracts text, creates embeddings, and stores vectors.
+
+Response:
+
 {
-  "success": true,
-  "message": "PDF uploaded successfully.",
-  "total_chunks": 42,
-  "total_pages": 10,
-  "file_name": "contract.pdf"
+"success": true,
+"message": "PDF uploaded successfully.",
+"total_chunks": 42,
+"total_pages": 10,
+"file_name": "contract.pdf"
 }
-```
 
-**Chat response:**
-```json
+---
+
+## Chat
+
+POST /api/chat/
+
+Response:
+
 {
-  "success": true,
-  "session_id": "uuid",
-  "query": "What are the termination clauses?",
-  "answer": "..."
+"success": true,
+"session_id": "uuid",
+"query": "What are the termination clauses?",
+"answer": "..."
 }
-```
-
-### Routing Logic
-
-The Router Agent (`router_agent.py`) decides which sub-agents to invoke based on query content:
-
-- **Kanoon Agent activates** when the query contains legal keywords: `case`, `judgment`, `section`, `article`, `court`, `bail`, `ipc`, `constitution`, `supreme court`, `high court`, etc.
-- **Web Scraper Agent activates** when the query contains temporal keywords: `latest`, `news`, `today`, `recent`, `update` — or contains a URL (`http`, `www`).
-- **PDF Agent and Memory Agent** always run for every query.
-
-### Knowledge Sources
-
-1. Uploaded PDFs (via Chroma vector similarity search, top-5 chunks, relevance threshold 0.3)
-2. Indian Kanoon API (case law and statutes)
-3. Live web: `indiankanoon.org`, `livelaw.in`, `barandbench.com`, `prsindia.org`, Law Commission of India, Constitution India
-
-### Memory
-
-Chat history is maintained per session (UUID-based) in memory, capped at 50 messages. This provides conversational context without requiring a database for early-stage deployments.
 
 ---
 
-## Running the Project
+# Pricing Strategy
 
-### Prerequisites
-
-- Python 3.10+
-- Node.js 18+
-- `GROQ_API_KEY` from [console.groq.com](https://console.groq.com)
-- `KANOON_API_KEY` from Indian Kanoon
-
-### Backend
-
-```bash
-cd backend
-pip install -r requirements.txt
-
-# Create .env file
-echo "GROQ_API_KEY=your_key_here" >> .env
-echo "KANOON_API_KEY=your_key_here" >> .env
-
-python manage.py migrate
-python manage.py runserver  # Runs on port 8000
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev  # Runs on port 3000
-```
+| Plan         | Target User                        | Monthly Price |
+| ------------ | ---------------------------------- | ------------- |
+| Starter      | Students, Citizens, Solo Advocates | ₹1,499        |
+| Professional | Small Law Firms                    | ₹5,999        |
+| Business     | Mid-Sized Firms                    | ₹14,999       |
+| Enterprise   | Corporates & Large Firms           | Custom        |
 
 ---
 
-## Current Limitations & Roadmap
+# Current Limitations
 
-| Limitation | Impact | Recommended Fix |
-|---|---|---|
-| In-memory chat history | Lost on server restart | Persist to PostgreSQL / Redis |
-| SQLite database | Not suitable for concurrent production load | Migrate to PostgreSQL |
-| CORS allows all origins | Security risk | Restrict to known frontend domains |
-| Debug mode enabled | Exposes stack traces | Use environment-based `DEBUG=False` in production |
-| No authentication | Anyone with the URL can use the API | Add JWT / OAuth2 |
-| Single Chroma instance | No multi-tenancy; all users share a vector space | Namespace collections per user/org |
-
----
-
-## Target Market & Go-To-Market
-
-**Primary segments:**
-1. Individual advocates and solo practitioners (~800,000 enrolled advocates in India)
-2. Small and mid-size law firms (top 10,000 firms by revenue)
-3. In-house legal departments at mid-market corporates
-4. LegalTech-forward law schools and clinics
-
-**Acquisition channels:**
-- Bar Council partnerships and legal conference presence
-- Content marketing on Indian legal news platforms (LiveLaw, Bar & Bench)
-- Direct outreach to law firm managing partners
-- Free Starter tier as top-of-funnel
+| Limitation             | Recommended Improvement              |
+| ---------------------- | ------------------------------------ |
+| In-memory chat history | PostgreSQL / Redis                   |
+| SQLite database        | PostgreSQL                           |
+| No authentication      | JWT / OAuth2                         |
+| Shared vector store    | Multi-tenant architecture            |
+| Open CORS policy       | Restricted origins                   |
+| Debug mode enabled     | Production environment configuration |
 
 ---
 
-## License
+# Future Roadmap
 
-Proprietary. All rights reserved. Contact harsh.shukla@raga.ai for licensing inquiries.
+## Legal AI Enhancements
+
+* Citation-aware legal reasoning
+* Judgment comparison
+* Legal drafting copilot
+* Court-ready document generation
+
+## Multilingual Expansion
+
+* Additional Indian languages
+* Voice-based legal assistance
+* Speech-to-text legal queries
+
+## Enterprise Features
+
+* Team workspaces
+* RBAC permissions
+* Audit logs
+* SSO integration
+* Dedicated APIs
+
+## Citizen Access Initiatives
+
+* Legal awareness assistant
+* Rural legal accessibility
+* Government scheme guidance
+* Legal aid integration
+
+---
+
+# Target Market
+
+## Legal Professionals
+
+* Individual advocates
+* Law firms
+* Corporate legal departments
+* Legal consultants
+* Compliance teams
+
+## Educational Institutions
+
+* Law schools
+* Legal clinics
+* Research organizations
+
+## Public Sector & Citizens
+
+* Legal aid organizations
+* NGOs
+* Citizens seeking legal awareness
+* Regional-language users
+
+---
+
+# Mission
+
+Nyaya AI aims to become India's most accessible legal intelligence platform by combining artificial intelligence, multilingual accessibility, legal research, and document intelligence to empower both legal professionals and ordinary citizens.
+
+---
+
+# License
+
+Proprietary. All rights reserved.
+
+For licensing inquiries:
+
+[pranjulm@observancegroup.com](mailto:pranjulm@observancegroup.com)
+
+[harsh.shukla@raga.ai](mailto:harsh.shukla@raga.ai)
