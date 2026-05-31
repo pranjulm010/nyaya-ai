@@ -1,9 +1,138 @@
-.env
+# ==========================
+# PYTHON
+# ==========================
 __pycache__/
-*.pyc
-node_modules/
-.next/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyd
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Environment Variables (API Keys)
+.env
+.env.*
+!.env.example
+
+# Python Logs
+*.log
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ==========================
+# DJANGO
+# ==========================
+db.sqlite3
+*.sqlite3
+
+# Django static/media
+staticfiles/
+media/
+
+# Migrations (optional)
+# */migrations/*
+# !*/migrations/__init__.py
+
+# ==========================
+# VECTOR DATABASE / RAG
+# ==========================
 chroma_db/
 legal_db/
-*.pdf
-*.zip
+vector_db/
+faiss_index/
+*.faiss
+
+# LangChain cache
+.langchain/
+
+# ==========================
+# AI / MODEL FILES
+# ==========================
+models/
+weights/
+*.pt
+*.bin
+*.onnx
+*.ckpt
+*.h5
+*.pkl
+
+# Uploaded PDFs / User Docs
+uploads/
+pdfs/
+documents/
+
+# ==========================
+# NODE / NEXT.JS
+# ==========================
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# npm / yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Lock files (optional)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ==========================
+# TYPESCRIPT
+# ==========================
+*.tsbuildinfo
+
+# ==========================
+# OS FILES
+# ==========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================
+# IDE / EDITOR
+# ==========================
+.vscode/
+.idea/
+
+# ==========================
+# TEMP FILES
+# ==========================
+temp/
+tmp/
+*.tmp
+
+# ==========================
+# CACHE
+# ==========================
+.cache/
+*.cache
+
+# ==========================
+# API / SECRET FILES
+# ==========================
+secrets.json
+credentials.json
+service-account.json
+
+# ==========================
+# GROQ / OPENAI / GEMINI KEYS
+# ==========================
+config.py
+settings_local.py
