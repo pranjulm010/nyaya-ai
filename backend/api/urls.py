@@ -1,7 +1,56 @@
 from django.urls import path
-from .views import upload_pdf, chat
+
+from api.views import (
+    chat,
+    upload_document,
+    history,
+    usage,
+    health,
+)
 
 urlpatterns = [
-    path("upload/", upload_pdf),
-    path("chat/", chat),
+    # ==========================
+    # Chat APIs
+    # ==========================
+    path(
+        "chat/",
+        chat,
+        name="chat"
+    ),
+
+    # ==========================
+    # Document Upload APIs
+    # ==========================
+    path(
+        "upload-document/",
+        upload_document,
+        name="upload_document"
+    ),
+
+    # ==========================
+    # User Chat History
+    # ==========================
+    path(
+        "history/",
+        history,
+        name="history"
+    ),
+
+    # ==========================
+    # Usage / Billing
+    # ==========================
+    path(
+        "usage/",
+        usage,
+        name="usage"
+    ),
+
+    # ==========================
+    # Health Check
+    # ==========================
+    path(
+        "health/",
+        health,
+        name="health"
+    ),
 ]

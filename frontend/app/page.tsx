@@ -1,25 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, KeyboardEvent, DragEvent, ChangeEvent } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  KeyboardEvent,
+  DragEvent,
+  ChangeEvent,
+} from "react";
+
 import axios from "axios";
-
-// ─── API helpers ────────────────────────────────────────────────────────────
-
-const BASE_URL = "http://127.0.0.1:8000/api";
-
-const uploadPDF = async (file: File): Promise<{ message?: string }> => {
-  const formData = new FormData();
-  formData.append("file", file);
-  const response = await axios.post(`${BASE_URL}/upload/`, formData);
-  return response.data;
-};
-
-const sendMessage = async (query: string): Promise<{ response?: string; answer?: string }> => {
-  const response = await axios.post(`${BASE_URL}/chat/`, { query });
-  return response.data;
-};
-
-// ─── Types ───────────────────────────────────────────────────────────────────
+import { uploadDocument, sendMessage } from "@/lib/api";
 
 type MessageRole = "ai" | "user";
 
@@ -35,8 +26,6 @@ interface UploadedFile {
   status: UploadStatus;
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export default function NyayaAI() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -44,10 +33,14 @@ export default function NyayaAI() {
       text: "Welcome to Nyaya AI. Upload contracts, FIRs, judgments, or legal notices to begin AI-powered analysis.",
     },
   ]);
-  const [input, setInput] = useState<string>("");
+
+  const [input, setInput] = useState("");
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [documentId, setDocumentId] = useState<string | null>(null);
+  const [documentType, setDocumentType] = useState<string | null>(null);
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -57,26 +50,40 @@ export default function NyayaAI() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── PDF upload ──────────────────────────────────────────────────────────────
-
   const handleFileSelect = async (file: File): Promise<void> => {
-    if (!file || file.type !== "application/pdf") {
+    const allowedExtensions = [".pdf", ".docx", ".txt", ".md"];
+
+    const isAllowed = allowedExtensions.some((ext) =>
+      file.name.toLowerCase().endsWith(ext)
+    );
+
+    if (!file || !isAllowed) {
       setMessages((prev) => [
         ...prev,
-        { role: "ai", text: "⚠️ Only PDF files are supported at this time." },
+        { role: "ai", text: "⚠️ Supported files: PDF, DOCX, TXT, MD." },
       ]);
       return;
     }
 
     setUploadedFile({ name: file.name, status: "uploading" });
+
     setMessages((prev) => [
       ...prev,
       { role: "user", text: `📄 Uploading: ${file.name}` },
     ]);
 
     try {
-      const result = await uploadPDF(file);
+      const result = await uploadDocument(file, "anonymous");
+
+      console.log("UPLOAD RESULT:", result);
+
+      setDocumentId(result.document_id || null);
+      setDocumentType(result.document_type || null);
+
+      console.log("ACTIVE DOCUMENT ID:", result.document_id);
+
       setUploadedFile({ name: file.name, status: "done" });
+
       setMessages((prev) => [
         ...prev,
         {
@@ -88,22 +95,26 @@ export default function NyayaAI() {
       ]);
     } catch (err: unknown) {
       setUploadedFile({ name: file.name, status: "error" });
-      const detail =
-        axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
+
+      const detail = axios.isAxiosError(err)
+        ? err.response?.data?.message || err.response?.data?.error
+        : undefined;
+
       setMessages((prev) => [
         ...prev,
         {
           role: "ai",
-          text: `❌ Failed to upload "${file.name}". ${detail ?? "Please try again."}`,
+          text: `❌ Failed to upload "${file.name}". ${
+            detail ?? "Please try again."
+          }`,
         },
       ]);
     }
   };
 
-  // ── Chat send ───────────────────────────────────────────────────────────────
-
   const handleSend = async (): Promise<void> => {
     const query = input.trim();
+
     if (!query || isLoading) return;
 
     setInput("");
@@ -111,17 +122,33 @@ export default function NyayaAI() {
     setIsLoading(true);
 
     try {
-      const result = await sendMessage(query);
+      console.log("CHAT DOCUMENT ID:", documentId);
+
+      const result = await sendMessage({
+        query,
+        userId: "anonymous",
+        sessionId,
+        userType: "public",
+        documentId: documentId || undefined,
+        documentType: documentType || undefined,
+      });
+
       setMessages((prev) => [
         ...prev,
         {
           role: "ai",
-          text: result?.response ?? result?.answer ?? "No response received.",
+          text:
+            result?.answer ??
+            result?.response ??
+            result?.message ??
+            "No response received.",
         },
       ]);
     } catch (err: unknown) {
-      const detail =
-        axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
+      const detail = axios.isAxiosError(err)
+        ? err.response?.data?.message || err.response?.data?.error
+        : undefined;
+
       setMessages((prev) => [
         ...prev,
         {
@@ -141,31 +168,38 @@ export default function NyayaAI() {
     }
   };
 
-  // ── Drag & drop ─────────────────────────────────────────────────────────────
-
   const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     setIsDragging(true);
   };
-  const handleDragLeave = (): void => setIsDragging(false);
+
+  const handleDragLeave = (): void => {
+    setIsDragging(false);
+  };
+
   const handleDrop = (e: DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     setIsDragging(false);
+
     const file = e.dataTransfer.files?.[0];
-    if (file) handleFileSelect(file);
+
+    if (file) {
+      handleFileSelect(file);
+    }
   };
 
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
-    if (file) handleFileSelect(file);
+
+    if (file) {
+      handleFileSelect(file);
+    }
+
     e.target.value = "";
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
-
   return (
     <div className="min-h-screen bg-[#0B1120] text-white flex">
-      {/* Sidebar */}
       <aside className="w-72 border-r border-white/10 bg-[#111827] flex flex-col justify-between">
         <div>
           <div className="p-6 border-b border-white/10">
@@ -188,29 +222,14 @@ export default function NyayaAI() {
                   },
                 ]);
                 setUploadedFile(null);
+                setDocumentId(null);
+                setDocumentType(null);
                 setInput("");
               }}
             >
               + New Legal Chat
             </button>
           </div>
-
-          <nav className="px-3 space-y-2">
-            {[
-              "Contracts Review",
-              "Case Law Research",
-              "IPC Analysis",
-              "Compliance Drafting",
-              "Legal Summaries",
-            ].map((item) => (
-              <button
-                key={item}
-                className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 transition text-gray-300"
-              >
-                {item}
-              </button>
-            ))}
-          </nav>
         </div>
 
         <div className="p-4 border-t border-white/10">
@@ -221,12 +240,11 @@ export default function NyayaAI() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {/* Top Navbar */}
         <header className="h-16 border-b border-white/10 bg-[#0F172A] flex items-center justify-between px-8">
           <div>
             <h2 className="text-lg font-semibold">Legal Research Assistant</h2>
+
             {uploadedFile && (
               <p className="text-xs mt-0.5">
                 {uploadedFile.status === "uploading" && (
@@ -234,11 +252,13 @@ export default function NyayaAI() {
                     ⏳ Uploading: {uploadedFile.name}
                   </span>
                 )}
+
                 {uploadedFile.status === "done" && (
                   <span className="text-green-400">
                     ✅ Active: {uploadedFile.name}
                   </span>
                 )}
+
                 {uploadedFile.status === "error" && (
                   <span className="text-red-400">
                     ❌ Failed: {uploadedFile.name}
@@ -256,11 +276,10 @@ export default function NyayaAI() {
               Upload Case Files
             </button>
 
-            {/* Hidden file input — shared by all upload triggers */}
             <input
               ref={fileInputRef}
               type="file"
-              accept="application/pdf"
+              accept=".pdf,.docx,.txt,.md"
               className="hidden"
               onChange={handleFileInputChange}
             />
@@ -271,18 +290,18 @@ export default function NyayaAI() {
           </div>
         </header>
 
-        {/* Dashboard */}
         <section className="p-8 overflow-y-auto flex-1">
-          {/* Hero */}
           <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-3xl p-8 shadow-2xl">
             <h1 className="text-4xl font-bold max-w-2xl leading-tight">
               AI-Powered Indian Legal Research Platform
             </h1>
+
             <p className="mt-4 text-white/80 max-w-3xl text-lg">
               Upload legal documents, search precedents, summarize case laws,
               and interact with an intelligent legal assistant trained for
               Indian judiciary workflows.
             </p>
+
             <div className="mt-6 flex gap-4">
               <button
                 className="bg-white text-black px-6 py-3 rounded-2xl font-semibold hover:scale-105 transition"
@@ -290,33 +309,10 @@ export default function NyayaAI() {
               >
                 Start Research
               </button>
-              <button className="border border-white/20 px-6 py-3 rounded-2xl hover:bg-white/10 transition">
-                Explore Features
-              </button>
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-8">
-            {[
-              { title: "Documents Uploaded", value: "1,248" },
-              { title: "Case Analyses", value: "342" },
-              { title: "Research Sessions", value: "89" },
-              { title: "AI Accuracy", value: "96%" },
-            ].map((card) => (
-              <div
-                key={card.title}
-                className="bg-[#111827] border border-white/10 rounded-3xl p-6"
-              >
-                <p className="text-gray-400 text-sm">{card.title}</p>
-                <h3 className="text-3xl font-bold mt-3">{card.value}</h3>
-              </div>
-            ))}
-          </div>
-
-          {/* Chat Interface */}
           <div className="mt-10 bg-[#111827] border border-white/10 rounded-3xl p-6 flex flex-col h-[500px]">
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto space-y-6 pr-2">
               {messages.map((msg, i) =>
                 msg.role === "ai" ? (
@@ -324,6 +320,7 @@ export default function NyayaAI() {
                     <div className="h-10 w-10 shrink-0 rounded-full bg-orange-500 flex items-center justify-center font-bold text-sm">
                       AI
                     </div>
+
                     <div className="bg-white/5 rounded-2xl p-4 max-w-3xl">
                       <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
                         {msg.text}
@@ -339,17 +336,17 @@ export default function NyayaAI() {
                 )
               )}
 
-              {/* Typing indicator */}
               {isLoading && (
                 <div className="flex gap-4">
                   <div className="h-10 w-10 shrink-0 rounded-full bg-orange-500 flex items-center justify-center font-bold text-sm">
                     AI
                   </div>
+
                   <div className="bg-white/5 rounded-2xl p-4">
                     <div className="flex gap-1 items-center h-5">
-                      <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                      <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                      <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                      <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" />
+                      <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" />
+                      <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" />
                     </div>
                   </div>
                 </div>
@@ -358,12 +355,11 @@ export default function NyayaAI() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <div className="mt-6 border border-white/10 bg-[#0B1120] rounded-2xl p-4">
               <div className="flex items-center gap-3">
                 <button
                   className="bg-white/5 hover:bg-white/10 h-12 w-12 rounded-xl text-xl shrink-0 transition"
-                  title="Upload PDF"
+                  title="Upload Document"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   +
@@ -373,9 +369,7 @@ export default function NyayaAI() {
                   ref={inputRef}
                   type="text"
                   value={input}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setInput(e.target.value)
-                  }
+                  onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask Nyaya AI about legal documents, contracts, or case law..."
                   className="flex-1 bg-transparent outline-none text-gray-200 placeholder:text-gray-500"
@@ -391,7 +385,6 @@ export default function NyayaAI() {
                 </button>
               </div>
 
-              {/* Drag & Drop Upload Zone */}
               <div
                 className={`mt-4 border border-dashed rounded-2xl p-6 text-center transition cursor-pointer select-none ${
                   isDragging
@@ -417,7 +410,7 @@ export default function NyayaAI() {
                       Drag & drop legal documents here or click to upload
                     </p>
                     <p className="text-xs text-gray-500 mt-2">
-                      Supports PDF files only
+                      Supports PDF, DOCX, TXT, MD
                     </p>
                   </>
                 )}
