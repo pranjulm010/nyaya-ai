@@ -871,4 +871,4 @@ For inquiries:
 
 **[pranjulm@observancegroup.com](mailto:pranjulm@observancegroup.com)**
 
-[harsh.shukla@raga.ai](mailto:harsh.shukla@raga.ai)
+**[harsh.shukla@raga.ai](mailto:harsh.shukla@raga.ai)
