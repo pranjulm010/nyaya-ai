@@ -7,41 +7,79 @@ from guardrails.hallucination_checker import filter_supported_sources
 from guardrails.unsafe_advice_blocker import is_unsafe_query
 from guardrails.confidence_score import calculate_confidence
 from guardrails.legal_disclaimer import legal_disclaimer
+from guardrails.domain_classifier import (
+    classify_legal_domain,
+    out_of_domain_response
+)
 from core.logger import log_error
 
 
 def guardrail_agent(
     query: str,
-    sources: List[Dict[str, Any]]
+    sources: List[Dict[str, Any]],
+    llm
 ) -> Dict[str, Any]:
     """
     Production-level guardrail agent.
 
     Responsibilities:
-    1. Block unsafe legal misuse.
-    2. Mask PII from query and sources.
-    3. Remove weak/empty sources.
-    4. Rank sources by trust and relevance.
-    5. Verify citation anchors.
-    6. Keep only source-supported context.
-    7. Return safe payload for final_answer_agent.
+    1. Mask PII from query.
+    2. Block non-legal / out-of-domain questions.
+    3. Block unsafe legal misuse.
+    4. Mask PII from sources.
+    5. Remove weak/empty sources.
+    6. Rank sources by trust and relevance.
+    7. Verify citation anchors.
+    8. Keep only source-supported context.
+    9. Return safe payload for final_answer_agent.
     """
 
     try:
+        # =========================
+        # 1. PII MASKING
+        # =========================
         safe_query = mask_pii(query)
 
+        # =========================
+        # 2. DOMAIN GUARDRAIL
+        # Only legal/law queries are allowed.
+        # Python, sports, cooking, weather, etc. are blocked.
+        # =========================
+        domain = classify_legal_domain(
+            query=safe_query,
+            llm=llm
+        )
+
+        if domain != "LEGAL":
+            return out_of_domain_response(safe_query)
+
+        # =========================
+        # 3. UNSAFE LEGAL MISUSE
+        # =========================
         if is_unsafe_query(safe_query):
             return blocked_response(safe_query)
 
+        # =========================
+        # 4. SOURCE SANITIZATION
+        # =========================
         sanitized_sources = sanitize_sources(sources)
 
         if not sanitized_sources:
             return no_source_response(safe_query)
 
+        # =========================
+        # 5. SOURCE RANKING
+        # =========================
         ranked_sources = rank_sources(sanitized_sources)
 
+        # =========================
+        # 6. CITATION CHECKING
+        # =========================
         citation_checked_sources = citation_checker(ranked_sources)
 
+        # =========================
+        # 7. HALLUCINATION FILTER
+        # =========================
         supported_sources = filter_supported_sources(
             query=safe_query,
             sources=citation_checked_sources
@@ -50,6 +88,9 @@ def guardrail_agent(
         if not supported_sources:
             return no_source_response(safe_query)
 
+        # =========================
+        # 8. CONFIDENCE SCORE
+        # =========================
         confidence = calculate_confidence(supported_sources)
 
         return {
@@ -74,6 +115,7 @@ def guardrail_agent(
             "safe_sources": [],
             "confidence": "Low",
             "disclaimer": legal_disclaimer(),
+            "reason": "guardrail_error",
             "message": "Guardrail validation failed."
         }
 

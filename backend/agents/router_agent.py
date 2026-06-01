@@ -16,7 +16,7 @@ from billing.usage_tracker import can_user_continue, track_usage
 from guardrails.pii_filter import mask_pii
 from guardrails.legal_disclaimer import legal_disclaimer
 from core.logger import log_error, log_info
-
+from core.llm import get_llm
 
 GENERIC_DOCUMENT_QUERIES = [
     "yeh case samjhao",
@@ -278,7 +278,7 @@ def router_agent(
         guardrail_payload = guardrail_agent(
             query=search_query,
             sources=collected_sources,
-        )
+             llm=get_llm)
 
         if guardrail_payload.get("blocked"):
             blocked_answer = guardrail_payload.get(
