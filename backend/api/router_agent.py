@@ -7,9 +7,13 @@ from .memory_agent import (
 )
 from .drafting_agent import drafting_agent
 from .webscrap_agent import ask_web_agent
+from .language_utils import detect_language, LANGUAGE_INSTRUCTION
 
 
 def router_agent(user_query):
+
+    detected_lang = detect_language(user_query)
+    lang_instruction = LANGUAGE_INSTRUCTION.get(detected_lang, "")
 
     collected_context = []
 
@@ -97,10 +101,30 @@ def router_agent(user_query):
         "criminal",
         "civil",
         "supreme court",
-        "high court"
+        "high court",
+        # Hindi legal keywords (Devanagari)
+        "मामला",      # case
+        "निर्णय",     # judgment
+        "कानून",      # law
+        "धारा",       # section
+        "अनुच्छेद",   # article
+        "न्यायालय",   # court
+        "याचिका",     # petition
+        "जमानत",      # bail
+        "संविधान",    # constitution
+        "वकील",       # advocate
+        "अपराध",      # crime / criminal
+        "सुप्रीम कोर्ट",  # supreme court
+        "उच्च न्यायालय",  # high court
+        "अदालत",      # court (colloquial)
+        "मुकदमा",     # lawsuit
+        "फैसला",      # verdict
+        "सजा",        # punishment
+        "गिरफ्तारी",  # arrest
+        "एफआईआर",     # FIR
     ]
 
-    if any(
+    if detected_lang == "hindi" or any(
         word in user_query.lower()
         for word in legal_keywords
     ):
@@ -206,6 +230,12 @@ YOUR RESPONSIBILITIES
 8. If multiple sources conflict:
    - mention the conflict
    - explain which source is stronger
+
+=========================================
+LANGUAGE INSTRUCTION
+=========================================
+
+{lang_instruction if lang_instruction else "Respond in English."}
 
 =========================================
 RESPONSE FORMAT

@@ -440,7 +440,7 @@ export default function NyayaAI() {
                     setInput(e.target.value)
                   }
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask Nyaya AI about legal documents, contracts, or case law..."
+                  placeholder="Ask Nyaya AI about legal documents, contracts, or case law... (हिंदी में भी पूछें)"
                   className="flex-1 bg-transparent outline-none text-gray-200 placeholder:text-gray-500"
                   disabled={isLoading}
                 />
