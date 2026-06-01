@@ -31,12 +31,18 @@ GENERIC_DOCUMENT_QUERIES = [
     "यह केस समझाओ",
     "इसको समझाओ",
     "इस दस्तावेज़ को समझाओ",
+    "ਇਹ ਕੇਸ ਸਮਝਾਓ",
+    "ਇਹ ਕੇਸ ਦੱਸੋ",
+    "இந்த கேஸை விளக்குங்கள்",
+    "ఈ కేసు వివరించండి",
+    "এই কেসটা বুঝাও",
+    "આ કેસ સમજાવો",
 ]
 
 
 def is_generic_document_query(query: str) -> bool:
     q = (query or "").lower().strip()
-    return any(item in q for item in GENERIC_DOCUMENT_QUERIES)
+    return any(item.lower() in q for item in GENERIC_DOCUMENT_QUERIES)
 
 
 def build_document_search_query(
@@ -60,7 +66,7 @@ def has_pdf_context(document_sources: List[Dict[str, Any]]) -> bool:
 
 def build_pdf_based_search_query(
     user_query: str,
-    document_sources: List[Dict[str, Any]]
+    document_sources: List[Dict[str, Any]],
 ) -> str:
     if not document_sources:
         return user_query
@@ -82,7 +88,7 @@ Find related Indian legal cases, statutes, precedents, court decisions, and trus
 
 
 def add_pdf_gap_note(
-    sources: List[Dict[str, Any]]
+    sources: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     sources.append({
         "source_type": "system",
@@ -103,6 +109,7 @@ def add_pdf_gap_note(
         "relevance_score": 0.9,
         "metadata": {},
     })
+
     return sources
 
 
@@ -131,7 +138,7 @@ def router_agent(
                 "reason": "usage_limit_exceeded",
                 "answer": usage_allowed.get(
                     "message",
-                    "You have reached your usage limit."
+                    "You have reached your usage limit.",
                 ),
                 "summary": "Usage limit exceeded.",
                 "sources_used": [],
@@ -160,8 +167,20 @@ def router_agent(
             intent_data=intent_data,
         )
 
-        search_query = translated_payload.get("query", safe_query)
-        original_language = translated_payload.get("original_language", "en")
+        search_query = translated_payload.get(
+            "english_query",
+            translated_payload.get("query", safe_query),
+        )
+
+        original_language = translated_payload.get(
+            "original_language",
+            "en",
+        )
+
+        target_language = translated_payload.get(
+            "target_language",
+            original_language,
+        )
 
         document_search_query = build_document_search_query(
             original_query=safe_query,
@@ -173,6 +192,7 @@ def router_agent(
         print("SEARCH QUERY:", search_query)
         print("DOCUMENT SEARCH QUERY:", document_search_query)
         print("ORIGINAL LANGUAGE:", original_language)
+        print("TARGET LANGUAGE:", target_language)
         print("DOCUMENT ID:", document_id)
         print("INTENT:", intent)
 
@@ -190,7 +210,6 @@ def router_agent(
 
         document_sources: List[Dict[str, Any]] = []
 
-        # 1. Always search uploaded PDF/document first
         if document_id:
             document_sources = document_agent(
                 query=document_search_query,
@@ -204,7 +223,6 @@ def router_agent(
 
         pdf_used = has_pdf_context(document_sources)
 
-        # 2. If PDF/document context found: PDF + related API + related Web
         if pdf_used:
             collected_sources.extend(document_sources)
 
@@ -229,7 +247,6 @@ def router_agent(
             collected_sources.extend(api_sources)
             collected_sources.extend(web_sources)
 
-        # 3. If PDF/document has no useful context: API + Web fallback
         else:
             if document_id:
                 collected_sources = add_pdf_gap_note(collected_sources)
@@ -250,7 +267,6 @@ def router_agent(
             collected_sources.extend(api_sources)
             collected_sources.extend(web_sources)
 
-        # 4. Emergency fallback
         if not collected_sources:
             collected_sources.extend(
                 api_agent(
@@ -270,11 +286,26 @@ def router_agent(
                 "This request cannot be processed safely.",
             )
 
+            blocked_payload = {
+                "answer": blocked_answer,
+                "sources_used": [],
+                "confidence": "Low",
+                "disclaimer": guardrail_payload.get(
+                    "disclaimer",
+                    legal_disclaimer(),
+                ),
+            }
+
+            blocked_payload = translate_answer_if_needed(
+                answer_payload=blocked_payload,
+                target_language=target_language,
+            )
+
             save_chat_message(
                 user_id=user_id,
                 session_id=session_id,
                 role="assistant",
-                content=blocked_answer,
+                content=blocked_payload.get("answer", ""),
             )
 
             return {
@@ -282,14 +313,15 @@ def router_agent(
                 "blocked": True,
                 "intent": intent,
                 "intent_reason": intent_data.get("reason"),
-                "language": original_language,
+                "language": target_language,
+                "original_language": original_language,
                 "translated": translated_payload.get("translated", False),
                 "pdf_used": False,
                 "summary": "Request blocked for safety.",
-                "answer": blocked_answer,
+                "answer": blocked_payload.get("answer"),
                 "sources_used": [],
                 "confidence": "Low",
-                "disclaimer": guardrail_payload.get(
+                "disclaimer": blocked_payload.get(
                     "disclaimer",
                     legal_disclaimer(),
                 ),
@@ -300,12 +332,12 @@ def router_agent(
             sources=guardrail_payload.get("safe_sources", []),
             intent=intent,
             user_type=user_type,
-            language=original_language,
+            language=target_language,
         )
 
         final_payload = translate_answer_if_needed(
             answer_payload=final_payload,
-            target_language=original_language,
+            target_language=target_language,
         )
 
         track_usage(
@@ -326,7 +358,8 @@ def router_agent(
             module="router_agent",
             message=(
                 f"Query completed for user={user_id}, "
-                f"intent={intent}, pdf_used={pdf_used}"
+                f"intent={intent}, pdf_used={pdf_used}, "
+                f"language={target_language}"
             ),
         )
 
@@ -335,7 +368,8 @@ def router_agent(
             "blocked": False,
             "intent": intent,
             "intent_reason": intent_data.get("reason"),
-            "language": original_language,
+            "language": target_language,
+            "original_language": original_language,
             "translated": translated_payload.get("translated", False),
             "pdf_used": pdf_used,
             "summary": final_payload.get("summary"),

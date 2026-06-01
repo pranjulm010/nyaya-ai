@@ -1,92 +1,73 @@
 from typing import Dict, Any
 
 from language.detect_language import detect_language
-from core.llm import get_llm
+from language.translate_to_english import translate_to_english
+from language.translate_to_user_language import translate_to_user_language
+from language.regional_prompts import (
+    get_language_name,
+    get_language_instruction,
+    detect_explicit_response_language,
+)
 
 
 def translate_query_if_needed(
     query: str,
-    intent_data: Dict[str, Any]
+    intent_data: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
 
-    language = detect_language(query)
+    original_language = detect_language(query)
+    explicit_language = detect_explicit_response_language(query)
 
-    if language == "en":
-        return {
-            "query": query,
-            "original_language": "en",
-        }
+    target_language = explicit_language or original_language
 
-    try:
-        llm = get_llm()
+    if original_language == "en":
+        english_query = query
+        translated = False
+    else:
+        english_query = translate_to_english(
+            text=query,
+            source_language=original_language,
+        )
+        translated = english_query.strip().lower() != query.strip().lower()
 
-        prompt = f"""
-Translate the following legal query to English.
-
-Rules:
-- Preserve legal meaning.
-- Preserve case names and sections.
-- Return only translated text.
-
-Query:
-{query}
-"""
-
-        response = llm.invoke(prompt)
-
-        translated_query = response.content.strip()
-
-        print("TRANSLATED QUERY:", translated_query)
-
-        return {
-            "query": translated_query,
-            "original_language": language,
-        }
-
-    except Exception as error:
-        print("TRANSLATION ERROR:", error)
-
-        return {
-            "query": query,
-            "original_language": language,
-        }
+    return {
+        "original_query": query,
+        "query": english_query,
+        "english_query": english_query,
+        "original_language": original_language,
+        "original_language_name": get_language_name(original_language),
+        "explicit_response_language": explicit_language,
+        "target_language": target_language,
+        "target_language_name": get_language_name(target_language),
+        "translated": translated,
+        "language_instruction": get_language_instruction(target_language),
+    }
 
 
 def translate_answer_if_needed(
     answer_payload: Dict[str, Any],
-    target_language: str
+    target_language: str,
 ) -> Dict[str, Any]:
 
     if target_language == "en":
+        answer_payload["language"] = "en"
+        answer_payload["translated"] = False
         return answer_payload
 
-    try:
-        llm = get_llm()
+    answer = answer_payload.get("answer", "")
 
-        answer = answer_payload.get("answer", "")
-
-        prompt = f"""
-Translate this legal answer into {target_language}.
-
-Rules:
-- Use simple regional language.
-- Preserve legal citations.
-- Preserve section names.
-- Preserve court names.
-- Preserve case names.
-
-Answer:
-{answer}
-"""
-
-        response = llm.invoke(prompt)
-
-        translated_answer = response.content.strip()
-
-        answer_payload["answer"] = translated_answer
-
+    if not answer:
+        answer_payload["language"] = target_language
+        answer_payload["translated"] = False
         return answer_payload
 
-    except Exception as error:
-        print("ANSWER TRANSLATION ERROR:", error)
-        return answer_payload
+    translated_answer = translate_to_user_language(
+        text=answer,
+        target_language=target_language,
+    )
+
+    answer_payload["answer"] = translated_answer
+    answer_payload["language"] = target_language
+    answer_payload["translated"] = translated_answer.strip() != answer.strip()
+
+    return answer_payload
