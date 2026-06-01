@@ -1,465 +1,874 @@
-# Nyaya AI — Multilingual Indian Legal Intelligence Platform
+# ⚖️ Nyaya AI — Production-Grade Multilingual Indian Legal Intelligence Platform
 
-## What Is Nyaya AI?
+<p align="center">
+  <h1 align="center">Nyaya AI</h1>
 
-Nyaya AI is an AI-powered legal intelligence platform built specifically for the Indian legal ecosystem. It enables advocates, law firms, corporate legal teams, law students, legal aid organizations, and ordinary citizens to understand, research, and analyze legal information through natural language conversations.
+  <p align="center">
+    <strong>AI-Powered Indian Legal Intelligence Platform</strong>
+  </p>
 
-Users can upload legal documents such as contracts, FIRs, judgments, notices, agreements, and court orders, then ask questions in plain language and receive detailed, source-backed answers derived from:
+  <p align="center">
+    Built with <strong>Agentic AI</strong>, <strong>RAG</strong>, <strong>Guardrails</strong>, <strong>Multilingual Intelligence</strong>, and <strong>Source-Backed Legal Reasoning</strong>.
+  </p>
 
-* Uploaded documents
-* Indian case law databases
-* Statutory provisions
-* Constitutional provisions
-* Live legal news and regulatory sources
+  <p align="center">
+    Designed for <strong>Lawyers</strong>, <strong>Law Firms</strong>, <strong>Legal Teams</strong>, <strong>Students</strong>, and <strong>Citizens</strong>.
+  </p>
+</p>
 
-Nyaya AI combines document intelligence, legal research, conversational memory, and multilingual accessibility into a single platform designed for India.
+---
+
+# Overview
+
+**Nyaya AI** is a **production-grade multilingual legal intelligence platform** designed specifically for the **Indian legal ecosystem**.
+
+It enables:
+
+* Advocates
+* Law Firms
+* Corporate Legal Teams
+* Law Students
+* Legal Researchers
+* Citizens
+
+to understand, research, analyze, and interpret legal information through **natural language conversations**.
+
+Nyaya AI combines:
+
+✅ **Document Intelligence**
+✅ **Legal Research**
+✅ **Agentic AI**
+✅ **Multilingual Legal Understanding**
+✅ **Legal Guardrails**
+✅ **Conversational Memory**
+✅ **Source-backed Legal Reasoning**
+✅ **OCR-based Document Analysis**
+
+into a single legal intelligence platform designed for India.
 
 ---
 
 # Vision
 
-To democratize access to Indian legal knowledge by making legal information understandable, searchable, and accessible for everyone—from senior advocates to first-time citizens seeking legal guidance.
+To democratize access to **Indian legal intelligence** by making legal information:
+
+* Understandable
+* Accessible
+* Searchable
+* Affordable
+* Multilingual
+
+for every legal professional and citizen in India.
 
 ---
 
-# The Problem
+# Problem Statement
 
-Legal information in India is often:
+Legal research in India is:
 
-* Difficult to understand for non-lawyers
-* Fragmented across multiple websites and databases
-* Time-consuming to research
-* Predominantly available in English
-* Expensive to access through professional legal research tools
+* Time-consuming
+* Fragmented across multiple platforms
+* Difficult for non-lawyers
+* Mostly English-centric
+* Expensive through enterprise legal tools
 
-A lawyer may spend several hours researching a single legal issue, while ordinary citizens often struggle to understand their rights, procedures, or legal documents.
+Lawyers spend hours researching:
 
-Nyaya AI reduces legal research time from hours to minutes while improving accessibility across Indian languages.
-
----
-
-# Who Benefits?
-
-## Legal Professionals
-
-### Advocates
-
-* Case law research
-* Judgment analysis
+* Case precedents
+* Court judgments
+* Constitutional provisions
 * Statutory interpretation
-* Legal drafting assistance
 
-### Law Firms
+Citizens struggle with:
 
-* Contract review
-* Due diligence support
-* Legal research automation
-* Knowledge management
+* FIR interpretation
+* Court notices
+* Tenant rights
+* Bail procedures
+* Legal rights awareness
 
-### Corporate Legal Teams
-
-* Compliance research
-* Contract analysis
-* Regulatory monitoring
-
-### Law Students
-
-* Legal education
-* Judgment understanding
-* Constitutional research
-* Case law exploration
+Nyaya AI reduces legal research from **hours to minutes**.
 
 ---
 
-## General Public
+# Core Features
 
-Nyaya AI is designed not only for lawyers but also for ordinary citizens.
+## 📄 Legal Document Intelligence
 
-Citizens can:
+Upload and analyze:
 
-* Understand their legal rights
-* Interpret legal notices
-* Understand FIRs and court orders
-* Learn legal procedures
-* Understand laws in simple language
-* Access legal information without needing legal expertise
+* FIRs
+* Contracts
+* Court Orders
+* Agreements
+* Judgments
+* Legal Notices
+* Affidavits
+* Petitions
 
-Examples:
-
-* What should I do if I receive a legal notice?
-* Can I file my own case in court?
-* What does Section 370 mean?
-* How does bail work?
-* What are my rights as a tenant?
-* Explain this FIR in simple Hindi.
-
----
-
-# Core Use Cases
-
-| Use Case                             | Users                          |
-| ------------------------------------ | ------------------------------ |
-| Contract review and clause analysis  | Lawyers, corporate legal teams |
-| FIR analysis                         | Advocates, citizens            |
-| Judgment summarization               | Lawyers, students              |
-| Case law research                    | Advocates, law firms           |
-| Legal notice interpretation          | Citizens, advocates            |
-| IPC/BNS section explanation          | Citizens, lawyers              |
-| Constitutional research              | Students, researchers          |
-| Compliance research                  | Corporate legal teams          |
-| Legal awareness and rights education | General public                 |
-| Regulatory monitoring                | Businesses, compliance teams   |
-
----
-
-# Multilingual Legal Intelligence
-
-India's legal ecosystem operates across dozens of languages. Nyaya AI is designed to make legal information accessible regardless of language preference.
-
-## For Legal Professionals
-
-* Research legal topics using regional languages
-* Translate legal summaries
-* Explain judgments to clients in local languages
-* Improve communication with non-English-speaking clients
-* Support regional court practitioners
-
-## For Citizens
-
-* Ask legal questions in their native language
-* Receive simplified legal explanations
-* Understand legal documents in familiar language
-* Access legal information without English proficiency
-
-## Supported & Planned Languages
-
-* English
-* Hindi
-* Marathi
-* Bengali
-* Tamil
-* Telugu
-* Gujarati
-* Kannada
-* Malayalam
-* Punjabi
-* Urdu
+Ask questions naturally.
 
 ### Example Queries
 
-#### Advocate
+```text
+Explain this FIR in simple Hindi.
+```
 
-Hindi:
-"धारा 420 से संबंधित सुप्रीम कोर्ट के प्रमुख निर्णय बताइए।"
-
-English:
-"Find Supreme Court precedents on anticipatory bail."
-
-#### Citizen
-
-Hindi:
-"अगर किसी ने मेरे खिलाफ झूठी FIR दर्ज की है तो मुझे क्या करना चाहिए?"
-
-English:
-"Can I fight my own case without hiring a lawyer?"
+```text
+What are the termination clauses in this contract?
+```
 
 ---
 
-# Key Differentiators
+## ⚖️ Indian Legal Research
 
-## India-Specific Legal Intelligence
+Research:
 
-Unlike generic AI systems, Nyaya AI is built specifically around:
+* Supreme Court judgments
+* High Court precedents
+* Constitutional Articles
+* Statutory Law
+* Legal Sections
 
-* Indian legal procedures
-* Indian statutes
-* Indian judgments
-* Constitutional provisions
-* Legal news and updates
+### Example Queries
 
-## Multi-Source Legal Research
+```text
+Explain Article 21 in Hindi.
+```
 
-Nyaya AI combines:
-
-* Uploaded legal documents
-* Case law databases
-* Legal statutes
-* Constitutional provisions
-* Live legal news
-
-into a single response.
-
-## Conversational Context
-
-Users do not need to repeatedly explain the same case.
-
-Nyaya AI maintains conversation history and context for follow-up legal discussions.
-
-## Multilingual Accessibility
-
-Supports legal interactions in Indian languages, making legal information more accessible for lawyers and citizens alike.
-
-## Fast Response Times
-
-Powered by Groq-hosted Llama 3.3 70B for low-latency legal reasoning.
+```text
+Find Supreme Court precedents on anticipatory bail.
+```
 
 ---
 
-# Technical Architecture
+## 🌍 Multilingual Legal Intelligence
 
-## System Overview
+Nyaya AI supports **regional legal conversations**.
 
-User (Browser)
-│
-▼
-Next.js Frontend
-│
-▼
-Django REST API
-│
-▼
-Router Agent (LangGraph)
-│
-├── Memory Agent
-├── PDF Agent
-├── Kanoon Agent
-├── Web Research Agent
-└── Drafting Agent
-│
-▼
-Groq / Llama 3.3 70B
-│
-▼
+### Supported Languages
+
+* English
+* Hindi
+* Urdu
+* Punjabi
+* Tamil
+* Telugu
+* Bengali
+* Marathi
+* Gujarati
+* Kannada
+* Malayalam
+
+### Example
+
+Hindi:
+
+```text
+अगर किसी ने मेरे खिलाफ झूठी FIR दर्ज की है तो मुझे क्या करना चाहिए?
+```
+
+Punjabi:
+
+```text
+ਆਰਟਿਕਲ 21 ਕੀ ਸੁਰੱਖਿਆ ਦਿੰਦਾ ਹੈ?
+```
+
+Urdu:
+
+```text
+ہیمراج کون تھا؟
+```
+
+Tamil:
+
+```text
+ஆர்டிக்கல் 21 என்ன பாதுகாக்கிறது?
+```
+
+---
+
+# 🏗️ System Architecture
+
+Nyaya AI uses a **Custom Multi-Agent Orchestration Engine** built in Python.
+
+Instead of LangGraph, Nyaya AI uses **manual production orchestration through intelligent router-based workflows** for greater control and flexibility.
+
+---
+
+# Production Pipeline
+
+```text
+User Query
+      │
+      ▼
+Language Detection
+      │
+      ▼
+Intent Agent
+      │
+      ▼
+Router Agent
+      │
+      ▼
+Guardrail Agent
+      │
+      ▼
+Parallel Retrieval
+┌───────────────────────┐
+│ Document Agent
+│ API Agent
+│ Web Agent
+└───────────────────────┘
+      │
+      ▼
+Normalizer Layer
+      │
+      ▼
+Source Ranking
+      │
+      ▼
+Hallucination Checker
+      │
+      ▼
+Citation Checker
+      │
+      ▼
+Translation Agent
+      │
+      ▼
+Final Answer Agent
+      │
+      ▼
 Final Legal Response
+```
 
 ---
 
-# Backend Stack
+# 🤖 Agent Architecture
 
-| Technology            | Purpose             |
-| --------------------- | ------------------- |
-| Python                | Backend language    |
-| Django                | Core framework      |
-| Django REST Framework | API development     |
-| LangChain             | LLM integration     |
-| LangGraph             | Agent orchestration |
-| ChromaDB              | Vector database     |
-| HuggingFace MiniLM    | Embeddings          |
-| Groq API              | Fast LLM inference  |
-| PyPDF                 | PDF extraction      |
-| BeautifulSoup         | Web scraping        |
-| Gunicorn              | Production server   |
-| WhiteNoise            | Static file serving |
+Nyaya AI uses **Agentic AI** instead of a traditional chatbot.
+
+Each query passes through specialized agents.
 
 ---
 
-# Frontend Stack
+## Intent Agent
 
-| Technology    | Purpose                  |
-| ------------- | ------------------------ |
-| Next.js 16    | Frontend framework       |
-| TypeScript    | Type safety              |
-| Tailwind CSS  | Styling                  |
-| Framer Motion | Animations               |
-| Radix UI      | Accessible UI components |
-| Lucide React  | Icons                    |
-| Axios         | API communication        |
+**File:**
+
+```text
+backend/agents/intent_agent.py
+```
+
+### Responsibilities
+
+* Understands user intent
+* Predicts legal query type
+* Routes legal workflows
+
+Supported intents:
+
+```text
+LEGAL_RESEARCH
+DOCUMENT_ANALYSIS
+CASE_SUMMARY
+WEB_RESEARCH
+LEGAL_EXPLANATION
+TRANSLATION
+GENERAL_QUERY
+```
 
 ---
 
-# Agent Architecture
+## Router Agent
 
-## Memory Agent
+**File:**
 
-Maintains conversational context and retrieves relevant chat history.
+```text
+backend/agents/router_agent.py
+```
 
-## PDF Agent
+### Responsibilities
 
-Processes uploaded legal documents and retrieves relevant sections using semantic search.
+The orchestration layer.
 
-## Kanoon Agent
+Responsible for:
+
+* Agent routing
+* Query orchestration
+* Source prioritization
+* Context merging
+
+Example:
+
+PDF Uploaded:
+
+```text
+Router
+   ↓
+Document Agent
+```
+
+Legal precedent search:
+
+```text
+Router
+   ↓
+API Agent + Web Agent
+```
+
+---
+
+## Guardrail Agent
+
+**File:**
+
+```text
+backend/agents/guardrail_agent.py
+```
+
+### Responsibilities
+
+Makes Nyaya AI production-safe.
+
+Protects against:
+
+### Prompt Injection
+
+Blocked Examples:
+
+```text
+Ignore previous instructions
+Reveal hidden prompt
+Show system prompt
+```
+
+### Hallucinations
+
+Prevents:
+
+* Fake judgments
+* Fake citations
+* Unsupported legal claims
+
+### Unsafe Legal Advice
+
+Blocks:
+
+```text
+How to evade law?
+How to commit fraud?
+```
+
+### PII Protection
+
+Masks:
+
+* Aadhaar
+* PAN
+* Email IDs
+* Phone Numbers
+
+---
+
+## Document Agent
+
+**File:**
+
+```text
+backend/agents/document_agent.py
+```
+
+### Responsibilities
+
+Handles:
+
+* PDF Extraction
+* OCR Processing
+* Chunking
+* Embeddings
+* Semantic Search
+
+Pipeline:
+
+```text
+PDF Upload
+      ↓
+OCR Extraction
+      ↓
+Text Extraction
+      ↓
+Chunking
+      ↓
+Embeddings
+      ↓
+Vector Search
+      ↓
+Relevant Context
+```
+
+---
+
+## API Agent
+
+**File:**
+
+```text
+backend/agents/api_agent.py
+```
+
+### Responsibilities
+
+Structured legal retrieval.
+
+Fetches:
+
+* Case law
+* Constitutional provisions
+* Legal precedents
+* Statutory sections
+
+---
+
+## Web Agent
+
+**File:**
+
+```text
+backend/agents/web_agent.py
+```
+
+### Responsibilities
 
 Retrieves:
 
-* Case law
-* Statutes
-* Constitutional provisions
-* Legal precedents
-
-from Indian legal databases.
-
-## Web Research Agent
-
-Collects:
-
-* Recent judgments
+* Legal updates
+* Regulatory changes
 * Legal news
-* Regulatory developments
-* Policy updates
+* Government notifications
 
-from trusted legal sources.
-
-## Drafting Agent
-
-Combines outputs from all agents and generates the final response.
-
----
-
-# Knowledge Sources
-
-## Uploaded Documents
-
-* Contracts
-* Agreements
-* FIRs
-* Court Orders
-* Legal Notices
-* Judgments
-
-## Case Law
-
-* Indian Kanoon
-* Supreme Court decisions
-* High Court judgments
-
-## Legal Sources
+Sources:
 
 * LiveLaw
 * Bar & Bench
 * PRS India
-* Constitution of India
-* Law Commission publications
+* Government Portals
 
 ---
 
-# API Endpoints
+## Translation Agent
 
-## Upload PDF
+**File:**
 
-POST /api/upload/
+```text
+backend/agents/translation_agent.py
+```
 
-Uploads a legal document, extracts text, creates embeddings, and stores vectors.
+### Responsibilities
 
-Response:
+Enables multilingual legal intelligence.
 
-{
-"success": true,
-"message": "PDF uploaded successfully.",
-"total_chunks": 42,
-"total_pages": 10,
-"file_name": "contract.pdf"
-}
+Pipeline:
 
----
-
-## Chat
-
-POST /api/chat/
-
-Response:
-
-{
-"success": true,
-"session_id": "uuid",
-"query": "What are the termination clauses?",
-"answer": "..."
-}
+```text
+Regional Language Query
+          ↓
+Translate to English
+          ↓
+Legal Processing
+          ↓
+Translate Response Back
+```
 
 ---
 
-# Pricing Strategy
+## Final Answer Agent
 
-| Plan         | Target User                        | Monthly Price |
-| ------------ | ---------------------------------- | ------------- |
-| Starter      | Students, Citizens, Solo Advocates | ₹1,499        |
-| Professional | Small Law Firms                    | ₹5,999        |
-| Business     | Mid-Sized Firms                    | ₹14,999       |
-| Enterprise   | Corporates & Large Firms           | Custom        |
+**File:**
+
+```text
+backend/agents/final_answer_agent.py
+```
+
+### Responsibilities
+
+* Final legal reasoning
+* Context merging
+* Structured response generation
+* Source-backed output
 
 ---
 
-# Current Limitations
+# 🛡️ Guardrails Layer
 
-| Limitation             | Recommended Improvement              |
-| ---------------------- | ------------------------------------ |
-| In-memory chat history | PostgreSQL / Redis                   |
-| SQLite database        | PostgreSQL                           |
-| No authentication      | JWT / OAuth2                         |
-| Shared vector store    | Multi-tenant architecture            |
-| Open CORS policy       | Restricted origins                   |
-| Debug mode enabled     | Production environment configuration |
+Nyaya AI includes **production-level legal guardrails**.
+
+---
+
+## Citation Checker
+
+**File:**
+
+```text
+backend/guardrails/citation_checker.py
+```
+
+Validates:
+
+* Court citations
+* Case references
+* Legal sections
+
+---
+
+## Hallucination Checker
+
+**File:**
+
+```text
+backend/guardrails/hallucination_checker.py
+```
+
+Prevents fabricated legal information.
+
+---
+
+## Confidence Score
+
+**File:**
+
+```text
+backend/guardrails/confidence_score.py
+```
+
+Assigns confidence to responses.
+
+Example:
+
+```text
+High Confidence
+Medium Confidence
+Low Confidence
+```
+
+---
+
+## PII Filter
+
+**File:**
+
+```text
+backend/guardrails/pii_filter.py
+```
+
+Masks:
+
+* PAN
+* Aadhaar
+* Emails
+* Phone Numbers
+
+---
+
+## Unsafe Advice Blocker
+
+**File:**
+
+```text
+backend/guardrails/unsafe_advice_blocker.py
+```
+
+Blocks unsafe legal requests.
+
+---
+
+## Source Ranking
+
+**File:**
+
+```text
+backend/guardrails/source_ranker.py
+```
+
+Ranks trusted sources higher.
+
+Priority:
+
+```text
+Uploaded Documents
+      ↓
+Court Sources
+      ↓
+Government Sources
+      ↓
+Legal Databases
+      ↓
+Legal News
+```
+
+---
+
+# 🔍 RAG Pipeline
+
+Nyaya AI uses **Retrieval-Augmented Generation (RAG)**.
+
+```text
+Legal Document
+      ↓
+OCR Extraction
+      ↓
+Text Extraction
+      ↓
+Chunking
+      ↓
+Embeddings
+      ↓
+ChromaDB
+      ↓
+Retriever
+      ↓
+Relevant Context
+      ↓
+Legal Reasoning
+      ↓
+Final Response
+```
+
+---
+
+# 🌐 Language Pipeline
+
+```text
+User Query
+      ↓
+Language Detection
+      ↓
+Translate to English
+      ↓
+Legal Retrieval
+      ↓
+Reasoning
+      ↓
+Translate Back
+      ↓
+Final Answer
+```
+
+---
+
+# 🧰 Tech Stack
+
+## AI Layer
+
+| Technology    | Purpose           |
+| ------------- | ----------------- |
+| LangChain     | LLM orchestration |
+| Groq          | Fast inference    |
+| Llama 3.3 70B | Legal reasoning   |
+| HuggingFace   | Embeddings        |
+
+---
+
+## Backend
+
+| Technology            | Purpose           |
+| --------------------- | ----------------- |
+| Python                | Core Language     |
+| Django                | Backend Framework |
+| Django REST Framework | APIs              |
+
+---
+
+## Frontend
+
+| Technology   | Purpose     |
+| ------------ | ----------- |
+| Next.js 16   | Frontend    |
+| TypeScript   | Type Safety |
+| Tailwind CSS | Styling     |
+
+---
+
+## Database
+
+| Technology           | Purpose         |
+| -------------------- | --------------- |
+| ChromaDB             | Vector Database |
+| SQLite               | Development     |
+| PostgreSQL (Planned) | Production      |
+
+---
+
+# 📁 Project Structure
+
+```text
+nyaya-ai/
+│
+├── backend/
+│   │
+│   ├── agents/
+│   │   ├── api_agent.py
+│   │   ├── document_agent.py
+│   │   ├── final_answer_agent.py
+│   │   ├── guardrail_agent.py
+│   │   ├── intent_agent.py
+│   │   ├── router_agent.py
+│   │   ├── translation_agent.py
+│   │   └── web_agent.py
+│   │
+│   ├── rag/
+│   │   ├── chunker.py
+│   │   ├── document_extractor.py
+│   │   ├── embeddings.py
+│   │   ├── ocr_extractor.py
+│   │   ├── retriever.py
+│   │   └── vector_store.py
+│   │
+│   ├── guardrails/
+│   │   ├── citation_checker.py
+│   │   ├── confidence_score.py
+│   │   ├── hallucination_checker.py
+│   │   ├── pii_filter.py
+│   │   ├── source_ranker.py
+│   │   └── unsafe_advice_blocker.py
+│   │
+│   ├── memory/
+│   ├── language/
+│   ├── normalizer/
+│   ├── core/
+│   ├── billing/
+│   └── api/
+│
+├── frontend/
+│
+└── README.md
+```
+
+---
+
+# 🚀 Installation
+
+Clone repository:
+
+```bash
+git clone https://github.com/pranjulm010/nyaya-ai.git
+
+cd nyaya-ai
+```
+
+Create virtual environment:
+
+```bash
+python -m venv venv
+```
+
+Activate:
+
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Linux/Mac:
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# Environment Variables
+
+Create `.env`
+
+```env
+GROQ_API_KEY=your_key
+
+OPENAI_API_KEY=your_key
+
+SECRET_KEY=your_secret
+
+DEBUG=False
+```
+
+---
+
+# Run Backend
+
+```bash
+python manage.py runserver
+```
+
+---
+
+# Run Frontend
+
+```bash
+npm install
+
+npm run dev
+```
 
 ---
 
 # Future Roadmap
 
-## Legal AI Enhancements
+### Phase 1 — MVP
 
-* Citation-aware legal reasoning
-* Judgment comparison
-* Legal drafting copilot
-* Court-ready document generation
+* Legal Chat
+* Document Intelligence
+* Basic RAG
 
-## Multilingual Expansion
+### Phase 2 — Agentic AI
 
-* Additional Indian languages
-* Voice-based legal assistance
-* Speech-to-text legal queries
+* Multi-Agent Workflow
+* Translation Layer
+* Legal APIs
 
-## Enterprise Features
+### Phase 3 — Production
 
-* Team workspaces
-* RBAC permissions
-* Audit logs
-* SSO integration
-* Dedicated APIs
+* Citation Validation
+* Hallucination Prevention
+* Billing
+* Authentication
 
-## Citizen Access Initiatives
+### Phase 4 — Enterprise
 
-* Legal awareness assistant
-* Rural legal accessibility
-* Government scheme guidance
-* Legal aid integration
+* Audit Logs
+* Team Workspaces
+* RBAC
+* SSO
 
 ---
 
-# Target Market
+# Legal Disclaimer
 
-## Legal Professionals
+**Nyaya AI is an AI-powered legal assistance platform and does not constitute legal advice.**
 
-* Individual advocates
-* Law firms
-* Corporate legal departments
-* Legal consultants
-* Compliance teams
-
-## Educational Institutions
-
-* Law schools
-* Legal clinics
-* Research organizations
-
-## Public Sector & Citizens
-
-* Legal aid organizations
-* NGOs
-* Citizens seeking legal awareness
-* Regional-language users
+Users should independently verify legal advice with a qualified legal professional.
 
 ---
 
 # Mission
 
-Nyaya AI aims to become India's most accessible legal intelligence platform by combining artificial intelligence, multilingual accessibility, legal research, and document intelligence to empower both legal professionals and ordinary citizens.
+> **Making Indian legal intelligence multilingual, accessible, and understandable for everyone.**
 
 ---
 
 # License
 
-Proprietary. All rights reserved.
+**Proprietary — All Rights Reserved**
 
-For licensing inquiries:
+For inquiries:
 
-[pranjulm@observancegroup.com](mailto:pranjulm@observancegroup.com)
+**[pranjulm@observancegroup.com](mailto:pranjulm@observancegroup.com)**
 
 [harsh.shukla@raga.ai](mailto:harsh.shukla@raga.ai)
