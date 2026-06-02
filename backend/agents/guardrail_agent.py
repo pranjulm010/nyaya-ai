@@ -9,7 +9,7 @@ from guardrails.confidence_score import calculate_confidence
 from guardrails.legal_disclaimer import legal_disclaimer
 from guardrails.domain_classifier import (
     classify_legal_domain,
-    out_of_domain_response
+    out_of_domain_response,
 )
 from core.logger import log_error
 
@@ -17,41 +17,53 @@ from core.logger import log_error
 def guardrail_agent(
     query: str,
     sources: List[Dict[str, Any]],
-    llm
+    llm,
+    document_mode: bool = False,
+    pdf_used: bool = False,
 ) -> Dict[str, Any]:
-    """
-    Production-level guardrail agent.
-
-    Responsibilities:
-    1. Mask PII from query.
-    2. Block non-legal / out-of-domain questions.
-    3. Block unsafe legal misuse.
-    4. Mask PII from sources.
-    5. Remove weak/empty sources.
-    6. Rank sources by trust and relevance.
-    7. Verify citation anchors.
-    8. Keep only source-supported context.
-    9. Return safe payload for final_answer_agent.
-    """
 
     try:
-        # =========================
-        # 1. PII MASKING
-        # =========================
         safe_query = mask_pii(query)
 
         # =========================
-        # 2. DOMAIN GUARDRAIL
-        # Only legal/law queries are allowed.
-        # Python, sports, cooking, weather, etc. are blocked.
+        # 1. CHECK DOCUMENT CONTEXT
         # =========================
-        domain = classify_legal_domain(
-            query=safe_query,
-            llm=llm
+        has_document_source = any(
+            str(source.get("source_type", "")).lower()
+            in {"document", "pdf", "uploaded_document"}
+            or bool((source.get("metadata", {}) or {}).get("document_id"))
+            for source in (sources or [])
         )
 
-        if domain != "LEGAL":
-            return out_of_domain_response(safe_query)
+        allow_document_question = bool(
+            document_mode and pdf_used and has_document_source
+        )
+
+        # =========================
+        # 2. DOMAIN BLOCKING
+        # =========================
+        # No PDF context = only legal questions allowed.
+        # PDF context found = short document follow-ups allowed.
+        if not allow_document_question:
+            domain = classify_legal_domain(
+                query=safe_query,
+                llm=llm,
+            )
+
+            if domain != "LEGAL":
+                response = out_of_domain_response(safe_query)
+                response["blocked"] = True
+                response["reason"] = "out_of_legal_domain"
+                response["safe_query"] = safe_query
+                response["safe_sources"] = []
+                response["confidence"] = "Low"
+                response["disclaimer"] = legal_disclaimer()
+                response["message"] = (
+                    "This question is outside Nyaya AI's legal scope. "
+                    "Please ask a law-related question or a question from "
+                    "the uploaded legal document."
+                )
+                return response
 
         # =========================
         # 3. UNSAFE LEGAL MISUSE
@@ -60,7 +72,7 @@ def guardrail_agent(
             return blocked_response(safe_query)
 
         # =========================
-        # 4. SOURCE SANITIZATION
+        # 4. SOURCE CLEANING
         # =========================
         sanitized_sources = sanitize_sources(sources)
 
@@ -68,65 +80,63 @@ def guardrail_agent(
             return no_source_response(safe_query)
 
         # =========================
-        # 5. SOURCE RANKING
+        # 5. RANK + VERIFY SOURCES
         # =========================
         ranked_sources = rank_sources(sanitized_sources)
-
-        # =========================
-        # 6. CITATION CHECKING
-        # =========================
         citation_checked_sources = citation_checker(ranked_sources)
 
-        # =========================
-        # 7. HALLUCINATION FILTER
-        # =========================
         supported_sources = filter_supported_sources(
             query=safe_query,
-            sources=citation_checked_sources
+            sources=citation_checked_sources,
         )
+
+        # Prevent over-strict hallucination checker from deleting valid PDF context
+        if not supported_sources and citation_checked_sources:
+            supported_sources = citation_checked_sources[:8]
 
         if not supported_sources:
             return no_source_response(safe_query)
-
-        # =========================
-        # 8. CONFIDENCE SCORE
-        # =========================
-        confidence = calculate_confidence(supported_sources)
 
         return {
             "blocked": False,
             "safe_query": safe_query,
             "safe_sources": supported_sources,
-            "confidence": confidence,
+            "confidence": calculate_confidence(supported_sources),
             "disclaimer": legal_disclaimer(),
-            "message": "Guardrail validation completed."
+            "message": "Guardrail validation completed.",
         }
 
     except Exception as error:
         log_error(
             module="guardrail_agent",
             message="Guardrail validation failed",
-            error=str(error)
+            error=str(error),
         )
 
         return {
             "blocked": False,
             "safe_query": mask_pii(query),
-            "safe_sources": [],
+            "safe_sources": sanitize_sources(sources)[:8] if sources else [],
             "confidence": "Low",
             "disclaimer": legal_disclaimer(),
             "reason": "guardrail_error",
-            "message": "Guardrail validation failed."
+            "message": "Guardrail failed, using sanitized available context.",
         }
 
 
 def sanitize_sources(
     sources: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
+
     clean_sources = []
 
-    for source in sources:
+    for source in sources or []:
         if not source:
+            continue
+
+        metadata = source.get("metadata", {}) or {}
+
+        if metadata.get("document_gap"):
             continue
 
         content = str(source.get("content", "")).strip()
@@ -161,7 +171,7 @@ def blocked_response(query: str) -> Dict[str, Any]:
             "I cannot help with hiding evidence, forging documents, "
             "misleading the court, evading law, bribery, witness tampering, "
             "or misuse of legal process."
-        )
+        ),
     }
 
 
@@ -173,5 +183,5 @@ def no_source_response(query: str) -> Dict[str, Any]:
         "confidence": "Low",
         "disclaimer": legal_disclaimer(),
         "reason": "no_verified_sources",
-        "message": "No reliable verified source context was available."
+        "message": "No reliable verified source context was available.",
     }
