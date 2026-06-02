@@ -1,4 +1,5 @@
 from typing import List, Dict, Any
+from core.llm_router import run_llm
 
 
 def calculate_confidence(
@@ -8,40 +9,40 @@ def calculate_confidence(
     if not sources:
         return "Low"
 
-    scores = []
+    source_summary = []
 
-    for source in sources:
-        score = (
-            source.get("final_score")
-            or source.get("relevance_score")
-            or source.get("trust_score")
-            or 0
+    for s in sources:
+        source_summary.append({
+            "type": s.get("source_type"),
+            "score": s.get("final_score"),
+            "title": s.get("title")
+        })
+
+    prompt = f"""
+Evaluate legal answer confidence.
+
+Sources:
+{source_summary}
+
+Return only:
+HIGH
+MEDIUM
+LOW
+"""
+
+    try:
+        result = run_llm(
+            prompt=prompt,
+            intent="simple_legal",
+            temperature=0
         )
 
-        try:
-            scores.append(float(score))
-        except Exception:
-            continue
+        result = result.strip().capitalize()
 
-    if not scores:
-        return "Low"
+        if result in ["High", "Medium", "Low"]:
+            return result
 
-    avg_score = sum(scores) / len(scores)
-
-    strong_source_count = sum(
-        1
-        for source in sources
-        if source.get("source_type") in [
-            "document",
-            "pdf",
-            "official",
-        ]
-    )
-
-    if avg_score >= 0.8 and strong_source_count >= 1:
-        return "High"
-
-    if avg_score >= 0.6:
         return "Medium"
 
-    return "Low"
+    except Exception:
+        return "Low"

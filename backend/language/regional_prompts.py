@@ -1,3 +1,6 @@
+from core.llm_router import run_llm
+
+
 LANGUAGE_NAMES = {
     "en": "English",
     "hi": "Hindi",
@@ -18,19 +21,6 @@ LANGUAGE_NAMES = {
     "kok": "Konkani",
     "mai": "Maithili",
     "doi": "Dogri",
-}
-
-
-EXPLICIT_LANGUAGE_KEYWORDS = {
-    "en": ["answer in english", "reply in english", "respond in english", "english mein", "english me"],
-    "hi": ["answer in hindi", "reply in hindi", "respond in hindi", "hindi mein", "hindi me"],
-    "ur": ["answer in urdu", "reply in urdu", "respond in urdu", "urdu mein", "urdu me"],
-    "pa": ["answer in punjabi", "reply in punjabi", "respond in punjabi", "punjabi mein", "punjabi me"],
-    "ta": ["answer in tamil", "reply in tamil", "respond in tamil", "tamil mein", "tamil me"],
-    "te": ["answer in telugu", "reply in telugu", "respond in telugu", "telugu mein", "telugu me"],
-    "bn": ["answer in bengali", "reply in bengali", "respond in bengali", "bengali mein", "bengali me"],
-    "mr": ["answer in marathi", "reply in marathi", "respond in marathi", "marathi mein", "marathi me"],
-    "gu": ["answer in gujarati", "reply in gujarati", "respond in gujarati", "gujarati mein", "gujarati me"],
 }
 
 
@@ -63,21 +53,77 @@ def get_language_instruction(language_code: str) -> str:
     if language_code == "en":
         return "Use English."
 
-    return rules.get(language_code, "Use the same language as the user's question.")
+    return rules.get(
+        language_code,
+        "Use the same language as the user's question."
+    )
 
 
 def detect_explicit_response_language(text: str) -> str | None:
-    if not text:
+    if not text or not text.strip():
         return None
 
-    lower_text = text.lower()
+    prompt = f"""
+You are a response-language detection agent.
 
-    for language_code, keywords in EXPLICIT_LANGUAGE_KEYWORDS.items():
-        for keyword in keywords:
-            if keyword in lower_text:
-                return language_code
+Check whether the user explicitly requested the answer in a specific language.
 
-    return None
+Return exactly one language code from this list:
+en
+hi
+hinglish
+pa
+bn
+mr
+gu
+ta
+te
+kn
+ml
+ur
+or
+as
+ne
+sa
+kok
+mai
+doi
+
+If the user did NOT explicitly request a response language, return:
+NONE
+
+Examples:
+- "answer in Hindi" -> hi
+- "urdu mein batao" -> ur
+- "isko tamil main likho" -> ta
+- "explain in English" -> en
+- "what is article 21" -> NONE
+
+Return only the code or NONE.
+
+User text:
+{text}
+"""
+
+    try:
+        result = run_llm(
+            prompt=prompt,
+            intent="translation",
+            temperature=0
+        )
+
+        code = result.strip().lower()
+
+        if code == "none":
+            return None
+
+        if code in LANGUAGE_NAMES:
+            return code
+
+        return None
+
+    except Exception:
+        return None
 
 
 def get_translation_system_prompt(target_language: str) -> str:

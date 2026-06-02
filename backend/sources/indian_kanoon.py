@@ -6,6 +6,12 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
+from sources.llm_source_helper import (
+    enrich_result_with_llm,
+    sort_and_limit_results,
+)
+
+
 load_dotenv()
 
 KANOON_API_KEY = os.getenv("KANOON_API_KEY")
@@ -62,13 +68,12 @@ def search_indian_kanoon_api(
         response.raise_for_status()
 
         payload = response.json()
-
         docs = payload.get("docs", [])
 
         results = []
 
-        for doc in docs[:max_results]:
-            results.append({
+        for doc in docs[:max_results * 2]:
+            result = {
                 "title": doc.get("title", "No Title"),
                 "content": doc.get("headline", ""),
                 "url": (
@@ -80,11 +85,15 @@ def search_indian_kanoon_api(
                 "court": doc.get("docsource", ""),
                 "date": doc.get("publishdate", ""),
                 "source": "Indian Kanoon API",
-                "relevance_score": 0.85,
                 "metadata": doc,
-            })
+            }
 
-        return results
+            result = enrich_result_with_llm(query=query, result=result)
+
+            if result["relevance_score"] >= 0.45:
+                results.append(result)
+
+        return sort_and_limit_results(results, max_results)
 
     except Exception:
         return []
@@ -117,7 +126,7 @@ def scrape_indian_kanoon(
 
         results = []
 
-        for item in soup.select(".result")[:max_results]:
+        for item in soup.select(".result")[:max_results * 2]:
             title_tag = item.select_one(".doc_title a")
             headline_tag = item.select_one(".headline")
 
@@ -126,17 +135,21 @@ def scrape_indian_kanoon(
 
             href = title_tag.get("href", "")
 
-            results.append({
+            result = {
                 "title": title_tag.get_text(" ", strip=True),
                 "content": headline_tag.get_text(" ", strip=True) if headline_tag else "",
                 "url": "https://indiankanoon.org" + href,
                 "court": "",
                 "citation": "",
                 "source": "Indian Kanoon Scrape",
-                "relevance_score": 0.7,
-            })
+            }
 
-        return results
+            result = enrich_result_with_llm(query=query, result=result)
+
+            if result["relevance_score"] >= 0.45:
+                results.append(result)
+
+        return sort_and_limit_results(results, max_results)
 
     except Exception:
         return []

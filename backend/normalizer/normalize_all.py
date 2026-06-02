@@ -1,8 +1,12 @@
 from typing import List, Dict, Any
 
+from normalizer.llm_source_enricher import enrich_source_with_llm
+
 
 def normalize_all_sources(
-    sources: List[Dict[str, Any]]
+    sources: List[Dict[str, Any]],
+    query: str = None,
+    use_llm_scoring: bool = False
 ) -> List[Dict[str, Any]]:
 
     normalized = []
@@ -16,7 +20,7 @@ def normalize_all_sources(
         if len(content) < 20:
             continue
 
-        normalized.append({
+        item = {
             "source_type": source.get("source_type", "unknown"),
             "source_name": source.get("source_name", "Unknown Source"),
             "title": source.get("title", "Untitled"),
@@ -30,6 +34,14 @@ def normalize_all_sources(
             "trust_score": source.get("trust_score", 0.5),
             "relevance_score": source.get("relevance_score", 0.5),
             "metadata": source.get("metadata", {}),
-        })
+        }
+
+        if use_llm_scoring and query:
+            item = enrich_source_with_llm(
+                query=query,
+                source=item
+            )
+
+        normalized.append(item)
 
     return normalized

@@ -1,4 +1,5 @@
 from typing import List, Dict, Any
+from core.llm_router import run_llm
 
 
 def filter_supported_sources(
@@ -6,38 +7,42 @@ def filter_supported_sources(
     sources: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
 
-    supported_sources = []
-
-    query_terms = set(
-        query.lower().split()
-    )
+    supported = []
 
     for source in sources:
-        content = str(
-            source.get("content", "")
-        ).lower()
-
-        title = str(
-            source.get("title", "")
-        ).lower()
+        content = str(source.get("content", ""))
 
         if len(content.strip()) < 20:
             continue
 
+        prompt = f"""
+You are a legal grounding evaluator.
+
+Question:
+{query}
+
+Source:
+{content[:3000]}
+
+Can this source help answer the question?
+
+Return only:
+SUPPORTED
+or
+NOT_SUPPORTED
+"""
+
         try:
-            relevance = float(
-                source.get("relevance_score", 0.5)
+            result = run_llm(
+                prompt=prompt,
+                intent="legal_research",
+                temperature=0
             )
+
+            if result.strip().upper() == "SUPPORTED":
+                supported.append(source)
+
         except Exception:
-            relevance = 0.5
+            continue
 
-        source_terms = set(
-            (content + " " + title).split()
-        )
-
-        overlap = query_terms.intersection(source_terms)
-
-        if relevance >= 0.45 or len(overlap) >= 1:
-            supported_sources.append(source)
-
-    return supported_sources
+    return supported

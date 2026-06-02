@@ -10,6 +10,7 @@ from sources.bar_and_bench import scrape_bar_and_bench
 from sources.generic_web import scrape_generic_web
 
 from normalizer.normalize_web import normalize_web_result
+from core.llm_router import run_llm
 from core.logger import log_error
 
 
@@ -19,68 +20,42 @@ WEB_CONNECTORS = [
         "function": scrape_supreme_court,
         "type": "official",
         "trust_score": 0.96,
-        "keywords": [
-            "supreme court", "judgment", "judgement", "order",
-            "appeal", "sci", "constitution bench"
-        ],
     },
     {
         "name": "High Courts",
         "function": scrape_high_courts,
         "type": "official",
         "trust_score": 0.92,
-        "keywords": [
-            "high court", "writ", "petition", "state",
-            "bail", "order", "judgment"
-        ],
     },
     {
         "name": "India Code",
         "function": scrape_india_code,
         "type": "official",
         "trust_score": 0.96,
-        "keywords": [
-            "section", "article", "act", "law", "ipc", "crpc",
-            "bns", "bnss", "constitution", "provision", "rule",
-            "bare act"
-        ],
     },
     {
         "name": "PRS India",
         "function": scrape_prs_india,
         "type": "web",
         "trust_score": 0.80,
-        "keywords": [
-            "bill", "amendment", "policy", "parliament",
-            "act summary", "legislative", "law reform"
-        ],
     },
     {
         "name": "LiveLaw",
         "function": scrape_live_law,
         "type": "web",
         "trust_score": 0.70,
-        "keywords": [
-            "latest", "recent", "today", "news", "update",
-            "judgment", "court", "supreme court", "high court"
-        ],
     },
     {
         "name": "Bar and Bench",
         "function": scrape_bar_and_bench,
         "type": "web",
         "trust_score": 0.70,
-        "keywords": [
-            "latest", "recent", "today", "news", "update",
-            "judgment", "court", "supreme court", "high court"
-        ],
     },
     {
         "name": "Generic Web",
         "function": scrape_generic_web,
         "type": "web",
         "trust_score": 0.45,
-        "keywords": [],
     },
 ]
 
@@ -91,17 +66,6 @@ def web_agent(
     max_workers: int = 4,
     force_all_sources: bool = False
 ) -> List[Dict[str, Any]]:
-    """
-    Production-level multi-website legal web agent.
-
-    Rules:
-    1. Never depend on one website.
-    2. Prefer official court/government/legal sources.
-    3. Use legal news only for recent/current context.
-    4. Use generic web only as fallback.
-    5. If one website fails, continue with others.
-    6. Return normalized source objects only.
-    """
 
     if not query or not query.strip():
         return []
@@ -151,37 +115,80 @@ def select_web_connectors(
     query: str,
     force_all_sources: bool = False
 ) -> List[Dict[str, Any]]:
-    """
-    Cost-optimized website selection.
-
-    It avoids scraping every website for every query.
-    """
 
     if force_all_sources:
         return WEB_CONNECTORS
 
-    q = query.lower()
+    connector_names = [
+        connector["name"]
+        for connector in WEB_CONNECTORS
+    ]
 
-    selected = []
+    prompt = f"""
+You are an Indian legal web source selector.
 
-    for connector in WEB_CONNECTORS:
-        keywords = connector.get("keywords", [])
+User query:
+{query}
 
-        if keywords and any(keyword in q for keyword in keywords):
-            selected.append(connector)
+Available web connectors:
+{connector_names}
 
-    if selected:
-        return selected
+Choose the most useful sources.
 
-    return default_web_connectors()
+Source meaning:
+- Supreme Court of India: official Supreme Court website.
+- High Courts: official High Court websites.
+- India Code: official statutes and bare acts.
+- PRS India: bills, amendments, policy, parliament.
+- LiveLaw: recent legal news and judgments.
+- Bar and Bench: recent legal news and judgments.
+- Generic Web: fallback broad web search.
+
+Return only source names separated by commas.
+Do not explain.
+
+Rules:
+- For latest/current/recent legal news, include LiveLaw and Bar and Bench.
+- For statutes/sections/articles, include India Code.
+- For judgments/cases, include Supreme Court of India, High Courts, and Generic Web if useful.
+- If unsure, return:
+India Code, PRS India, Generic Web
+"""
+
+    try:
+        result = run_llm(
+            prompt=prompt,
+            intent="legal_research",
+            temperature=0
+        )
+
+        selected_names = {
+            name.strip()
+            for name in result.split(",")
+            if name.strip()
+        }
+
+        selected = [
+            connector
+            for connector in WEB_CONNECTORS
+            if connector["name"] in selected_names
+        ]
+
+        if selected:
+            return selected
+
+        return default_web_connectors()
+
+    except Exception as error:
+        log_error(
+            module="web_agent",
+            message="LLM web connector selection failed",
+            error=str(error)
+        )
+        return default_web_connectors()
 
 
 def default_web_connectors() -> List[Dict[str, Any]]:
-    """
-    Safe fallback for general legal questions.
-    Generic Web is included only as fallback.
-    """
-
     default_names = {
         "India Code",
         "PRS India",
@@ -200,9 +207,6 @@ def call_web_connector(
     query: str,
     max_results: int
 ) -> List[Dict[str, Any]]:
-    """
-    Calls one website connector safely.
-    """
 
     try:
         raw_results = connector["function"](
@@ -240,6 +244,7 @@ def call_web_connector(
 def remove_duplicate_web_sources(
     sources: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
+
     seen = set()
     unique_sources = []
 
@@ -256,17 +261,9 @@ def remove_duplicate_web_sources(
 
 
 def build_duplicate_key(source: Dict[str, Any]) -> str:
-    title = str(
-        source.get("title", "")
-    ).lower().strip()
-
-    url = str(
-        source.get("url", "")
-    ).lower().strip()
-
-    source_name = str(
-        source.get("source_name", "")
-    ).lower().strip()
+    title = str(source.get("title", "")).lower().strip()
+    url = str(source.get("url", "")).lower().strip()
+    source_name = str(source.get("source_name", "")).lower().strip()
 
     return f"{source_name}|{title}|{url}"
 
@@ -274,6 +271,7 @@ def build_duplicate_key(source: Dict[str, Any]) -> str:
 def sort_web_results(
     sources: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
+
     return sorted(
         sources,
         key=lambda item: (

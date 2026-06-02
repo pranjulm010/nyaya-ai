@@ -3,6 +3,11 @@ from urllib.parse import quote_plus
 import requests
 from bs4 import BeautifulSoup
 
+from sources.llm_source_helper import (
+    enrich_result_with_llm,
+    sort_and_limit_results,
+)
+
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0"
@@ -23,22 +28,27 @@ def scrape_high_courts(query: str, max_results: int = 5) -> List[Dict]:
 
         results = []
 
-        for item in soup.select(".result")[:max_results]:
+        for item in soup.select(".result")[:max_results * 2]:
             title_tag = item.select_one(".result__title a")
             snippet_tag = item.select_one(".result__snippet")
 
             if not title_tag:
                 continue
 
-            results.append({
+            result = {
                 "title": title_tag.get_text(" ", strip=True),
                 "content": snippet_tag.get_text(" ", strip=True) if snippet_tag else "",
                 "url": title_tag.get("href"),
                 "court": "High Court",
-                "relevance_score": 0.7
-            })
+                "source": "High Courts",
+            }
 
-        return results
+            result = enrich_result_with_llm(query=query, result=result)
+
+            if result["relevance_score"] >= 0.45:
+                results.append(result)
+
+        return sort_and_limit_results(results, max_results)
 
     except Exception:
         return []

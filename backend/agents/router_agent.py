@@ -17,7 +17,7 @@ from guardrails.pii_filter import mask_pii
 from guardrails.legal_disclaimer import legal_disclaimer
 from core.logger import log_error, log_info
 from core.llm import get_llm
-
+from core.config import CHEAP_MODEL
 GENERIC_DOCUMENT_QUERIES = [
     "yeh case samjhao",
     "ye case samjhao",
@@ -274,11 +274,17 @@ def router_agent(
                     max_results_per_source=3,
                 )
             )
+        guardrail_llm = get_llm(
+            model=CHEAP_MODEL,
+            temperature=0
+        )
 
         guardrail_payload = guardrail_agent(
-            query=search_query,
-            sources=collected_sources,
-             llm=get_llm)
+        query=search_query,
+        sources=collected_sources,
+        llm=guardrail_llm
+        )
+        
 
         if guardrail_payload.get("blocked"):
             blocked_answer = guardrail_payload.get(

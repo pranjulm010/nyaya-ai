@@ -1,29 +1,52 @@
-UNSAFE_PATTERNS = [
-    "hide evidence",
-    "destroy evidence",
-    "delete evidence",
-    "forge",
-    "fake document",
-    "fake affidavit",
-    "false statement",
-    "lie in court",
-    "mislead court",
-    "bribe",
-    "bribery",
-    "evade law",
-    "threaten witness",
-    "tamper witness",
-    "fabricate evidence",
-    "create fake proof",
-    "backdate document",
-    "manipulate evidence",
-]
+from core.llm_router import run_llm
+
+
+SAFETY_PROMPT = """
+You are a legal safety classifier.
+
+Determine if the user query seeks:
+
+UNSAFE:
+- illegal help
+- evading law
+- destroying evidence
+- hiding crime
+- witness tampering
+- fraud
+- fake legal documents
+- misleading court
+- criminal assistance
+
+SAFE:
+- legal rights
+- legal defence
+- criminal law explanation
+- legal procedure
+- lawful guidance
+
+Return only:
+
+SAFE
+or
+UNSAFE
+
+Query:
+{query}
+"""
 
 
 def is_unsafe_query(query: str) -> bool:
-    if not query:
+    if not query or not query.strip():
         return False
 
-    q = query.lower()
+    try:
+        result = run_llm(
+            prompt=SAFETY_PROMPT.format(query=query),
+            intent="simple_legal",
+            temperature=0
+        )
 
-    return any(pattern in q for pattern in UNSAFE_PATTERNS)
+        return result.strip().upper() == "UNSAFE"
+
+    except Exception:
+        return False

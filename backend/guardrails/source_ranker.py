@@ -1,50 +1,43 @@
 from typing import List, Dict, Any
+from core.llm_router import run_llm
 
 
-SOURCE_PRIORITY = {
-    "document": 0.95,
-    "pdf": 0.95,
-    "official": 0.92,
-    "api": 0.82,
-    "web": 0.60,
-    "memory": 0.40,
-}
+def rank_sources(sources, query):
 
-
-def rank_sources(
-    sources: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
-
-    ranked = []
+    scored = []
 
     for source in sources:
-        item = dict(source)
+        content = source.get("content", "")[:2000]
 
-        source_type = item.get("source_type", "web")
+        prompt = f"""
+Question:
+{query}
 
-        trust_score = float(
-            item.get("trust_score")
-            or SOURCE_PRIORITY.get(source_type, 0.5)
-        )
+Source:
+{content}
 
-        relevance_score = float(
-            item.get("relevance_score")
-            or 0.5
-        )
+Give relevance score from 0 to 1.
 
-        final_score = round(
-            (trust_score * 0.6) + (relevance_score * 0.4),
-            3
-        )
+Return number only.
+"""
 
-        item["trust_score"] = trust_score
-        item["relevance_score"] = relevance_score
-        item["final_score"] = final_score
+        try:
+            score = run_llm(
+                prompt=prompt,
+                intent="legal_research",
+                temperature=0
+            )
 
-        ranked.append(item)
+            score = float(score.strip())
+
+        except Exception:
+            score = 0.5
+
+        source["final_score"] = score
+        scored.append(source)
 
     return sorted(
-        ranked,
-        key=lambda x: x.get("final_score", 0),
+        scored,
+        key=lambda x: x["final_score"],
         reverse=True
     )
